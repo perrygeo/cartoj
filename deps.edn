@@ -1,0 +1,12 @@
+{:paths ["src" "test" "dev"]
+
+ :deps {ch.qos.logback/logback-classic {:mvn/version "1.5.18"}
+        org.clojure/clojurescript {:mvn/version "1.12.145"}
+        re-frame/re-frame         {:mvn/version "1.4.7"}
+        reagent/reagent           {:mvn/version "2.0.1"}}
+
+ :aliases {:codox {:replace-paths ["src"]
+                   :extra-deps {codox/codox {:mvn/version "0.10.8"}}
+                   :exec-fn codox.main/generate-docs
+                   :exec-args {:source-paths ["src"]
+                               :language :clojurescript}}}}
