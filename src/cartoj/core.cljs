@@ -14,7 +14,8 @@
                       :map-style \"...\"})
      child1 child2]"
   (:require ["react-map-gl/maplibre" :refer [Map]]
-            [cartoj.props :as props]))
+            [cartoj.props :as props]
+            [cartoj.pmtiles]))
 
 (defn interactive-map
   "Reagent component wrapping react-map-gl Map.
