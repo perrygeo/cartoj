@@ -11,6 +11,7 @@
   {:target :npm-module
    :output-dir "dist"
    :entries [cartoj.core
+             cartoj.geocoder
              cartoj.overlays
              cartoj.sources
              cartoj.controls

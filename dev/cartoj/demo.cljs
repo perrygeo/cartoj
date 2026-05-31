@@ -7,6 +7,7 @@
             [cartoj.overlays :as overlay]
             [cartoj.sources :as sources]
             [cartoj.controls :as ctrl]
+            [cartoj.geocoder :as geocoder]
             [cartoj.interop :as interop]
             [cartoj.re-frame :as cartoj-rf])
   (:require-macros [cartoj.demo-macros :refer [code-string]]))
@@ -90,12 +91,15 @@
 
 (defn geocoder-section []
   [:section
-   [:h2 "Geocoding"]
-   [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 1})
+   [:h2 "Geocoder"]
+   [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 4})
                             :map-style demo-stylesheet
                             :class-name "imap"}
-    [ctrl/navigation-control {:position "top-right"}]]
-   [:p "Map controls"]])
+    [geocoder/geocoder-control {:position "top-right"
+                                :marker true
+                                :on-result (fn [^js evt]
+                                             (js/console.log "geocoder result:" (.-result evt)))}]]
+   [:p "Search for places using Nominatim geocoding."]])
 
 (defn controlled-section []
   (let [state (or @(rf/subscribe [::cartoj-rf/view-state]) sf-coords)]
@@ -447,7 +451,7 @@
                       :section dynamic-styling-section}
    :flyto            {:title "Fly To Location"
                       :section flyto-section}
-   :geocoder         {:title "⚠️ Geocoder"
+   :geocoder         {:title "Geocoder"
                       :section geocoder-section}
    :geojson-http     {:title "GeoJSON HTTP (maplibre)"
                       :section geojson-http-section}
