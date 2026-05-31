@@ -12,12 +12,11 @@
   (:require-macros [cartoj.demo-macros :refer [code-string]]))
 
 (def demo-stylesheet
-  "https://demotiles.maplibre.org/style.json")
+  "https://pmtiles.perrygeo.com/styles/light.json"
+  #_"https://demotiles.maplibre.org/style.json")
 
 (def sf-coords
   {:longitude -122.4194 :latitude 37.7749 :zoom 7})
-
-(defonce show-popup? (r/atom false))
 
 (defn code-block
   [src]
@@ -122,22 +121,24 @@
           Clojurescript has full access to the map state."]]))
 
 (defn overlay-section []
-  [:section
-   [:h2  "Marker + Popup"]
-   [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 7})
-                            :class-name "imap"
-                            :map-style demo-stylesheet}
-    [overlay/marker
-     {:longitude (:longitude sf-coords)
-      :latitude  (:latitude sf-coords)
-      :on-click  #(swap! show-popup? not)}]
-    (when @show-popup?
-      [overlay/popup
-       {:longitude  (:longitude sf-coords)
-        :latitude   (:latitude sf-coords)
-        :on-close   #(reset! show-popup? false)
-        :close-button true}
-       [:p "San Francisco"]])]])
+  (let [show-popup? (r/atom false)]
+    (fn []
+      [:section
+       [:h2  "Marker + Popup"]
+       [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 7})
+                                :class-name "imap"
+                                :map-style demo-stylesheet}
+        [overlay/marker
+         {:longitude (:longitude sf-coords)
+          :latitude  (:latitude sf-coords)
+          :on-click  #(swap! show-popup? not)}]
+        (when @show-popup?
+          [overlay/popup
+           {:longitude  (:longitude sf-coords)
+            :latitude   (:latitude sf-coords)
+            :on-close   #(reset! show-popup? false)
+            :close-button true}
+           [:h2.popup "San Francisco"]])]])))
 
 (defn point-features-section []
   (let [sample-geojson {:type "FeatureCollection"
