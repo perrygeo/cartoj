@@ -393,10 +393,15 @@
 ;;   so the reagant atom holding state persists across renders.
 
 (defn basemaps-section []
-  (let [basemap-styles [{:name "Liberty (Street)" :url "https://tiles.openfreemap.org/styles/liberty"}
-                        {:name "Bright"           :url "https://tiles.openfreemap.org/styles/bright"}
-                        {:name "Positron (Light)" :url "https://tiles.openfreemap.org/styles/positron"}
-                        {:name "Dark Matter"      :url "https://tiles.openfreemap.org/styles/dark"}]
+  (let [basemap-styles [{:name "[OpenFreeMap] Liberty (Street)" :url "https://tiles.openfreemap.org/styles/liberty"}
+                        {:name "[OpenFreeMap] Bright"           :url "https://tiles.openfreemap.org/styles/bright"}
+                        {:name "[OpenFreeMap] Positron (Light)" :url "https://tiles.openfreemap.org/styles/positron"}
+                        {:name "[OpenFreeMap] Dark Matter"      :url "https://tiles.openfreemap.org/styles/dark"}
+                        {:name "[Protomaps] Light"              :url "https://pmtiles.perrygeo.com/styles/light.json"}
+                        {:name "[Protomaps] Dark"               :url "https://pmtiles.perrygeo.com/styles/dark.json"}
+                        {:name "[Protomaps] Data Viz White"     :url "https://pmtiles.perrygeo.com/styles/white.json"}
+                        {:name "[Protomaps] Data Viz Grey"      :url "https://pmtiles.perrygeo.com/styles/grey.json"}
+                        {:name "[Protomaps] Data Viz Black"     :url "https://pmtiles.perrygeo.com/styles/black.json"}]
         selected-style (r/atom (:url (first basemap-styles)))]
     (fn []
       [:section
