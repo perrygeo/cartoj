@@ -13,7 +13,8 @@
   (:require-macros [cartoj.demo-macros :refer [code-string]]))
 
 (def demo-stylesheet
-  "https://pmtiles.perrygeo.com/styles/light.json"
+  "https://tiles.openfreemap.org/styles/positron"
+  #_"https://pmtiles.perrygeo.com/styles/white.json"
   #_"https://demotiles.maplibre.org/style.json")
 
 (def sf-coords
@@ -439,8 +440,12 @@
                        :section barebones-section}
    :basemaps         {:title "Basemaps"
                       :section basemaps-section}
-   :click-event      {:title "Click event handler"
+   :on-click-event   {:title "on-click event"
                       :section click-event-section}
+   :on-move-event   {:title "on-move event"
+                     :section controlled-section}
+   :on-mouse-over-event {:title "⚠️  on-mouse-over event"
+                         :section click-event-section}
    :cluster          {:title "Cluster"
                       :section cluster-section}
    :controls         {:title "Interactive Map Controls"
@@ -465,11 +470,9 @@
                       :section layer-switcher-section}
    :limit-interact   {:title "Limit Interactivity"
                       :section limit-interactivity-section}
-   :move-event       {:title "⚠️ Mouse move event handler"
-                      :section click-event-section}
    :overlays         {:title "Marker + Popup"
                       :section overlay-section}
-   :reframe          {:title "Reframe on-move event"
+   :reframe          {:title "Reframe integration"
                       :section controlled-section}
    :side-by-side     {:title "⚠️ Side by Side"
                       :section side-by-side-section}
