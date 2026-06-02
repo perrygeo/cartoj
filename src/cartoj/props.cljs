@@ -37,6 +37,7 @@
   #{:initial-view-state
     :view-state
     :style
+    :map-style
     :bounds
     :max-bounds
     :padding
@@ -48,24 +49,13 @@
 (def ^:private maplibre-spec-keys
   #{:paint
     :layout
-    :filter})
+    :filter
+    :terrain
+    :sky
+    :light})
 
 (def ^:private deep-convert-keys
   (clojure.set/union camel-convert-keys maplibre-spec-keys))
-
-(defn- map->js-camel
-  "Recursively convert a CLJS map to a JS object with camelCase keys.
-  Used for JS/CSS nested props (:style, :initial-view-state, etc.)."
-  [m]
-  (let [obj (js-obj)]
-    (doseq [[k v] m]
-      (let [js-key (kebab->camel k)
-            js-val (cond
-                     (and (map? v) (not (satisfies? IRecord v))) (map->js-camel v)
-                     (vector? v) (clj->js v)
-                     :else v)]
-        (aset obj js-key js-val)))
-    obj))
 
 (defn- map->js-kebab
   "Recursively convert a CLJS map to a JS object preserving kebab-case keys.
@@ -77,6 +67,24 @@
       (let [js-key (name k)
             js-val (cond
                      (and (map? v) (not (satisfies? IRecord v))) (map->js-kebab v)
+                     (vector? v) (clj->js v)
+                     :else v)]
+        (aset obj js-key js-val)))
+    obj))
+
+(defn- map->js-camel
+  "Recursively convert a CLJS map to a JS object with camelCase keys.
+  Used for JS/CSS nested props (:style, :initial-view-state, etc.).
+  When a nested map's key is in maplibre-spec-keys (:paint, :layout,
+  :filter, :terrain, :sky, :light), delegates to map->js-kebab instead
+  so style-spec properties keep their kebab-case names."
+  [m]
+  (let [obj (js-obj)]
+    (doseq [[k v] m]
+      (let [js-key (kebab->camel k)
+            js-val (cond
+                     (and (contains? maplibre-spec-keys k) (map? v)) (map->js-kebab v)
+                     (and (map? v) (not (satisfies? IRecord v))) (map->js-camel v)
                      (vector? v) (clj->js v)
                      :else v)]
         (aset obj js-key js-val)))

@@ -14,7 +14,8 @@
                                               GeolocateControl
                                               FullscreenControl
                                               ScaleControl
-                                              AttributionControl]]
+                                              AttributionControl
+                                              TerrainControl]]
             [cartoj.props :as props]))
 
 (defn- make-control
@@ -57,3 +58,9 @@
   Key props: :position, :compact, :custom-attribution."
   [& args]
   (make-control AttributionControl args))
+
+(defn terrain-control
+  "Terrain toggle control.
+  Key props: :position, :source, :exaggeration."
+  [& args]
+  (make-control TerrainControl args))

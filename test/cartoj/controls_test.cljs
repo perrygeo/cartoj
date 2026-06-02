@@ -93,3 +93,21 @@
 (deftest attribution-control-accepts-no-props
   (testing "no-arg call does not crash"
     (is (vector? (controls/attribution-control)))))
+
+;; ---------------------------------------------------------------------------
+;; TerrainControl
+
+(deftest terrain-control-returns-reagent-vector
+  (testing "returns [:> ...]"
+    (assert-control (controls/terrain-control {}))))
+
+(deftest terrain-control-converts-props
+  (testing ":position and :source converted to JS"
+    (let [[_ _comp ^js js-props] (controls/terrain-control {:position "top-left"
+                                                             :source "my-dem"})]
+      (is (= "top-left" (.-position js-props)))
+      (is (= "my-dem" (.-source js-props))))))
+
+(deftest terrain-control-accepts-no-props
+  (testing "no-arg call does not crash"
+    (is (vector? (controls/terrain-control)))))

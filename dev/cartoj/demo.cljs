@@ -386,12 +386,41 @@
    [:p "Compare two map styles or layers side by side."]])
 
 (defn terrain-section []
-  [:section
-   [:h2 "⚠️ Terrain"]
-   [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 5})
-                            :map-style default-stylesheet}
-    [ctrl/navigation-control {:position "top-right"}]]
-   [:p "Enable 3D terrain rendering on the map."]])
+  (let [terrain-source {:id "terrain-dem"
+                        :type "raster-dem"
+                        :url "https://demotiles.maplibre.org/terrain-tiles/tiles.json"
+                        "tileSize" 256}
+        hillshade-layer {:id "hillshade"
+                         :type "hillshade"
+                         :source "terrain-dem"
+                         :paint {:hillshade-exaggeration 0.25
+                                 :hillshade-shadow-color "#444"
+                                 :hillshade-highlight-color "#ccc"
+                                 :hillshade-accent-color "#bbb"}}]
+    (fn []
+      [:section
+       [:h2 "Terrain"]
+       ;; demotiles.maplibre.org serves a single elevation tile around the Austrian Alps
+       [cartoj/interactive-map {:initial-view-state {:longitude 11.396
+                                                     :latitude  47.255
+                                                     :zoom      11
+                                                     :bearing   0
+                                                     :pitch     55}
+                                :map-style  "https://tiles.openfreemap.org/styles/liberty"
+                                :terrain {:source "terrain-dem" :exaggeration 1.0}
+                                :sky {"sky-color" "#80ccff"
+                                      "sky-horizon-blend" 0.5
+                                      "horizon-color" "#ccddff"
+                                      "horizon-fog-blend" 0.5
+                                      "fog-color" "#fcf0dd"
+                                      "fog-ground-blend" 0.2}}
+        [ctrl/navigation-control {:position "top-right"}]
+        [ctrl/terrain-control {:position "top-right"
+                               :source "terrain-dem"
+                               :exaggeration 1.0}]
+        [sources/source terrain-source
+         [sources/layer hillshade-layer]]]
+       [:p "3D terrain rendering with hillshade and sky atmosphere."]])))
 
 (defn drawing-section []
   (let [geometry  (r/atom nil)
@@ -519,7 +548,7 @@
                        :section style-by-category-section}
    :style-by-numeric {:title "⚠️ Style by numeric"
                       :section style-by-numeric-section}
-   :terrain          {:title "⚠️ Terrain"
+   :terrain          {:title "Terrain"
                       :section terrain-section}))
 (defn sidebar []
   (into [:div.demo-sidebar]
