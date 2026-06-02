@@ -247,8 +247,7 @@
         click-handler (fn [_evt]
                         (reset! waiting-message "fetching cities geojson...")
                         (fetch-json-with "/data/ne_110m_populated_places_simple.geojson" #(reset! collection  %))
-                        (js/setTimeout #(reset! waiting-message nil) 1000)
-                        (js/console.log "DONE!"))]
+                        (js/setTimeout #(reset! waiting-message nil) 1000))]
     (fn []
       [:section
        [:h2 "GeoJSON, manual HTTP"]
@@ -479,12 +478,7 @@
             to complete. The GeoJSON-like EDN representation is updated live:"]
         (if (nil? @geometry)
           [:p {:style {:color "#888"}} "No geometry yet — draw on the map."]
-          [:pre {:style {:background "#f5f5f5"
-                         :padding "0.75rem"
-                         :border-radius "4px"
-                         :font-size "0.8rem"
-                         :overflow-x "auto"}}
-           (with-out-str (cljs.pprint/pprint @geometry))])]
+          [:pre (with-out-str (cljs.pprint/pprint @geometry))])]
        [:br]])))
 
 (defn barebones-section []
