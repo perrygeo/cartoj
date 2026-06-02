@@ -244,10 +244,12 @@
                               (.then (fn [response] (.json response)))
                               (.then (fn [js-data] (callback js-data)))
                               (.catch (fn [error] (.error js/console "Fetch failed:" error)))))
-        click-handler (fn [_evt]
+        reset-handler (fn [_]
+                        (reset! collection  (clj->js {})))
+        click-handler (fn [_]
                         (reset! waiting-message "fetching cities geojson...")
                         (fetch-json-with "/data/ne_110m_populated_places_simple.geojson" #(reset! collection  %))
-                        (js/setTimeout #(reset! waiting-message nil) 1000))]
+                        (js/setTimeout #(reset! waiting-message nil) 960))]
     (fn []
       [:section
        [:h2 "GeoJSON, manual HTTP"]
@@ -263,8 +265,10 @@
                                  :circle-color "#fff"
                                  :circle-stroke-width 1
                                  :circle-stroke-color "#a99"}}]]]
-       [:button {:on-click click-handler} "Load cities" (when @waiting-message [:span {:class "waiting"} (str @waiting-message)])]
-       (when @collection [:pre [:code (str (js->clj @collection :keywordize-keys true ()))]])
+       [:button {:on-click click-handler} "Load cities"
+        (when @waiting-message [:span {:class "waiting"} (str @waiting-message)])]
+       [:button {:on-click reset-handler} "Unload"]
+       [:pre [:code (str (js->clj @collection :keywordize-keys true ()))]]
        [:p "Sometimes you need more control over the HTTP request"]
        [:ul
         [:li "data fetched by custom event handlers"]
@@ -424,21 +428,24 @@
     "Using the " [:code "pop_max"] " property of the cities dataset, "
     "create a larger & darker red circle for cities with higher populations."]])
 
-(defn style-by-category-section []
-  [:section
-   [:h2 "⚠️ Style by categorical property"]
-   [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 3})
-                            :map-style default-stylesheet}
-    [ctrl/navigation-control {:position "top-right"}]]
-   [:p "Style according to unique values"]])
-
 (defn side-by-side-section []
-  [:section
-   [:h2 "⚠️ Side by Side"]
-   [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 3})
-                            :map-style default-stylesheet}
-    [ctrl/navigation-control {:position "top-right"}]]
-   [:p "Compare two map styles or layers side by side."]])
+  (let [state (or @(rf/subscribe [::cartoj-rf/view-state]) sf-coords)]
+    [:section
+     [:h2 "Sync two map viewports."]
+     [cartoj/interactive-map
+      (merge state
+             {:map-style default-stylesheet
+              :class-name "half-interactive-map"
+              :on-move (cartoj-rf/on-move)})
+      [ctrl/navigation-control {:position "top-right"}]]
+     [cartoj/interactive-map
+      (merge state
+             {:map-style  "https://tiles.openfreemap.org/styles/liberty"
+              :class-name "half-interactive-map"
+              :on-move (cartoj-rf/on-move)})
+      [ctrl/navigation-control {:position "top-right"}]]
+     [:p "By registering an on-move handler, and subscribing to view-state,
+          Clojurescript has full access to the map state and can reset the other map."]]))
 
 (defn terrain-section []
   (let [terrain-source {:id "terrain-dem"
@@ -586,12 +593,10 @@
                       :section overlay-section}
    :reframe          {:title "Reframe integration"
                       :section reframe-section}
-   :side-by-side     {:title "⚠️ Side by Side"
+   :side-by-side     {:title "Side by Side"
                       :section side-by-side-section}
    :sources          {:title "Point Features"
                       :section point-features-section}
-   :style-by-category {:title "⚠️ Style by categorical"
-                       :section style-by-category-section}
    :style-by-numeric {:title "Style by numeric"
                       :section style-by-numeric-section}
    :terrain          {:title "Terrain"

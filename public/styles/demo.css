@@ -20,7 +20,8 @@ h2 {
 }
 
 .waiting {
-  color: red;
+  color: yellow;
+  font-style: italic;
   margin-left: 0.5rem;
 }
 
@@ -33,6 +34,17 @@ h2 {
   position: absolute;
   right: 0;
   top: 0;
+}
+
+.half-interactive-map {
+  width: 48%;
+  display: inline-block;
+  vertical-align: top;
+  height: 360px;
+  max-width: 880px;
+  margin-bottom: 0.5rem;
+  cursor: pointer;
+  padding: 0.25rem;
 }
 
 .cartoj-interactive-map {
