@@ -512,8 +512,7 @@
       [:section
        [:h2 "Basemaps"]
        [cartoj/interactive-map {:initial-view-state {:latitude 20 :zoom 0.7}
-                                :map-style @selected-style
-                                :class-name "imap"}
+                                :map-style @selected-style}
         [ctrl/navigation-control {:position "top-right"}]]
        [:p "Demonstrate switching between different public basemaps"]
        [:div.control-panel
