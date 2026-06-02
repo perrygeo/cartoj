@@ -19,6 +19,11 @@ h2 {
   color: #444;
 }
 
+.waiting {
+  color: red;
+  margin-left: 0.5rem;
+}
+
 .maplibregl-popup-close-button {
   border: none;
   color: grey;
@@ -35,6 +40,7 @@ h2 {
   height: 360px;
   max-width: 880px;
   margin-bottom: 0.5rem;
+  cursor: pointer;
 }
 
 .demo-main {

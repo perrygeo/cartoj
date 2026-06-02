@@ -236,16 +236,27 @@
                              :text-halo-blur 1}}]]]
    [:p "Add a layer to label a source by attribute."]])
 
-(defn geojson-http-section []
-  (let [sample-geojson "/data/ne_110m_populated_places_simple.geojson"]
+(defn geojson-manual-http-section []
+  (let [collection (r/atom nil)
+        waiting-message (r/atom nil)
+        fetch-json-with (fn [url callback]
+                          (-> (js/fetch url)
+                              (.then (fn [response] (.json response)))
+                              (.then (fn [js-data] (callback js-data)))
+                              (.catch (fn [error] (.error js/console "Fetch failed:" error)))))
+        click-handler (fn [_evt]
+                        (reset! waiting-message "fetching cities geojson...")
+                        (fetch-json-with "/data/ne_110m_populated_places_simple.geojson" #(reset! collection  %))
+                        (js/setTimeout #(reset! waiting-message nil) 1000)
+                        (js/console.log "DONE!"))]
     (fn []
       [:section
-       [:h2 "GeoJSON HTTP Source"]
+       [:h2 "GeoJSON, manual HTTP"]
        [cartoj/interactive-map {:initial-view-state {:longitude 0 :latitude 0 :zoom 0}
                                 :map-style default-stylesheet}
         [sources/source {:id "cities"
                          :type "geojson"
-                         :data (clj->js sample-geojson)}
+                         :data @collection}
          [sources/layer {:id "cities-circles"
                          :type "circle"
                          :source "cities"
@@ -253,9 +264,33 @@
                                  :circle-color "#fff"
                                  :circle-stroke-width 1
                                  :circle-stroke-color "#a99"}}]]]
+       [:button {:on-click click-handler} "Load cities" (when @waiting-message [:span {:class "waiting"} (str @waiting-message)])]
+       (when @collection [:pre [:code (str (js->clj @collection :keywordize-keys true ()))]])
+       [:p "Sometimes you need more control over the HTTP request"]
+       [:ul
+        [:li "data fetched by custom event handlers"]
+        [:li "addtional HTTP headers or authentication handshakes"]
+        [:li "error handling"]
+        [:li "parsing, filtering, transforming..."]]])))
 
-       [:p "Loads features from a GeoJSON source using an unauthenticated url."]
-       [:p "Maplibre will perform the HTTP request, error handling, and parsing."]])))
+(defn geojson-http-section []
+  [:section
+   [:h2 "GeoJSON HTTP Source"]
+   [cartoj/interactive-map {:initial-view-state {:longitude 0 :latitude 0 :zoom 0}
+                            :map-style default-stylesheet}
+    [sources/source {:id "cities"
+                     :type "geojson"
+                     :data "/data/ne_110m_populated_places_simple.geojson"}
+     [sources/layer {:id "cities-circles"
+                     :type "circle"
+                     :source "cities"
+                     :paint {:circle-radius 3
+                             :circle-color "#fff"
+                             :circle-stroke-width 1
+                             :circle-stroke-color "#a99"}}]]]
+
+   [:p "Loads features from a GeoJSON source using an unauthenticated url."]
+   [:p "Maplibre will perform the HTTP request, error handling, and parsing."]])
 
 (defn heatmap-section []
   (let [points "/data/earthquakes.geojson"]
@@ -496,12 +531,9 @@
 (def tabs
   (sorted-map
    ;; TODO 
-   ;; draggable marker
-   ;; filter features
-   ;; style by client side filtering (typeahead)
+   ;; interact with map features
    ;; custom MVT source
-   ;; Time series
-   ;; interact with feature layers
+   ;; Time series + typeahead filter features in map view
    :barebones         {:title "Barebones"
                        :section barebones-section}
    :basemaps         {:title "Basemaps"
@@ -526,8 +558,8 @@
                       :section geocoder-section}
    :geojson-http     {:title "GeoJSON HTTP (maplibre)"
                       :section geojson-http-section}
-   :geojson-manual   {:title "⚠️ GeoJSON HTTP (manual)"
-                      :section geojson-http-section}
+   :geojson-manual   {:title "GeoJSON HTTP (manual)"
+                      :section geojson-manual-http-section}
    :heatmap          {:title "Heatmap"
                       :section heatmap-section}
    :labels           {:title "Labeling"
@@ -575,6 +607,7 @@
              :sources          (code-block (code-string point-features-section))
              :layer-switcher   (code-block (code-string layer-switcher-section))
              :geojson-http     (code-block (code-string geojson-http-section))
+             :geojson-manual   (code-block (code-string geojson-manual-http-section))
              :heatmap          (code-block (code-string heatmap-section))
              :cluster          (code-block (code-string cluster-section))
              :limit-interact   (code-block (code-string limit-interactivity-section))
