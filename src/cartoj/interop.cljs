@@ -13,9 +13,9 @@
 
   Usage — with-map:
     [interop/with-map
-     (fn [map-ref]
-       ;; map-ref is the MapRef (a maplibre Map instance)
-       [:button {:on-click #(.flyTo map-ref (clj->js {:center [-122 37] :zoom 12}))}
+     (fn [map-instance]
+       ;; map-instance is the maplibre Map (resolved via .getMap() on the MapRef)
+       [:button {:on-click #(.flyTo map-instance (clj->js {:center [-122 37] :zoom 12}))}
         \"Fly!\"])]
 
   Usage — map-provider + use-map:
@@ -50,10 +50,10 @@
 ;; with-map — functional component shim for useMap
 
 (defn with-map
-  "Render children with access to the current MapRef.
+  "Render children with access to the maplibre Map instance.
 
-  `render-fn` is a function that receives the MapRef (maplibre Map instance)
-  and returns a Reagent hiccup vector.
+  `render-fn` is a function that receives the maplibre Map instance (or nil if
+  no Map is mounted yet) and returns a Reagent hiccup vector.
 
   This helper wraps useMap inside a functional component (:f>) so it can be
   used from ordinary Reagent components without hooks friction."
@@ -61,7 +61,8 @@
   [:f> (fn []
          (let [map-ctx (useMap)
                map-ref (.-current map-ctx)]
-           (r/as-element (render-fn map-ref))))])
+           (r/as-element
+            (render-fn (when map-ref (.getMap map-ref))))))])
 
 ;; ---------------------------------------------------------------------------
 ;; MapProvider

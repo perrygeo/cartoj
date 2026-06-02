@@ -25,6 +25,10 @@ h2 {
   margin-left: 0.5rem;
 }
 
+input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
 .maplibregl-popup-close-button {
   border: none;
   color: grey;

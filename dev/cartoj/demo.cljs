@@ -121,7 +121,7 @@
    [:h2 "Geocoder"]
    [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 4})
                             :map-style default-stylesheet}
-    [geocoder/geocoder-control {:position "top-right"
+    [geocoder/geocoder-control {:position "top-left"
                                 :marker true
                                 :on-result (fn [^js evt]
                                              (js/console.log "geocoder result:" (.-result evt)))}]]
@@ -200,13 +200,56 @@
        [:p "Add point locations programatically.
             The structure of the \"Feature\" and \"FeatureCollection\" is based on the GeoJSON standard."]])))
 
-(defn layer-switcher-section []
+(defn layer-interactivity-section []
   [:section
-   [:h2 "⚠️ Layer Switcher"]
+   [:h2 "⚠️ Layer Interactivity"]
    [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 3})
                             :map-style default-stylesheet}
     [ctrl/navigation-control {:position "top-right"}]]
-   [:p "Choose which layers to display on the map."]])
+   [:p "Choose which layers to make interactive, making them available on mouse move."]])
+
+(defn layer-switcher-section []
+  (let [map-ref (atom nil)
+        visibility (r/atom {:road true :places true})
+        road-layers ["highway_path" "highway_minor" "highway_major_casing"
+                     "highway_major_inner" "highway_major_subtle"
+                     "highway_motorway_casing" "highway_motorway_inner"
+                     "highway_motorway_subtle" "tunnel_motorway_casing"
+                     "tunnel_motorway_inner" "highway_motorway_bridge_casing"
+                     "highway_motorway_bridge_inner" "road_area_pier" "road_pier"]
+        places-layers ["label_other" "label_village" "label_town" "label_city"
+                       "label_city_capital" "label_state" "label_country_1"
+                       "label_country_2" "label_country_3" "airport"
+                       "waterway_line_label" "water_name_point_label"
+                       "water_name_line_label"]
+        toggle-group (fn [layers visible?]
+                       (when-let [^js m @map-ref]
+                         (let [val (if visible? "visible" "none")]
+                           (doseq [layer layers]
+                             (.setLayoutProperty m layer "visibility" val)))))]
+    (fn []
+      [:section
+       [:h2 "Layer Switcher"]
+       [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 11})
+                                :map-style default-stylesheet}
+        [interop/with-map (fn [m] (reset! map-ref m) [:<>])]
+        [ctrl/navigation-control {:position "top-right"}]]
+       [:p "Toggle the visibility of layers built into the OpenFreeMap default stylesheet:"]
+       [:div.control-panel
+        [:label
+         [:input {:type "checkbox"
+                  :checked (:road @visibility)
+                  :on-change (fn [_]
+                               (swap! visibility update :road not)
+                               (toggle-group road-layers (:road @visibility)))}]
+         "Roads"]
+        [:label
+         [:input {:type "checkbox"
+                  :checked (:places @visibility)
+                  :on-change (fn [_]
+                               (swap! visibility update :places not)
+                               (toggle-group places-layers (:places @visibility)))}]
+         "Places"]]])))
 
 (defn label-section []
   [:section
@@ -392,12 +435,65 @@
        [:p "Panning restricted to the San Francisco Bay Area. Zoom limited to 8-14. Rotation disabled."]])))
 
 (defn dynamic-styling-section []
-  [:section
-   [:h2 "⚠️ Dynamic Styling"]
-   [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 10})
-                            :map-style default-stylesheet}
-    [ctrl/navigation-control {:position "top-right"}]]
-   [:p "Change map or layer styles programmatically in response to user input."]])
+  (let [map-ref (atom nil)
+        layer-defs [["water"                "fill-color"  "rgb(194, 200, 202)"]
+                    ["park"                 "fill-color"  "rgb(230, 233, 229)"]
+                    ["highway_major_inner"  "line-color"  "#fff"]
+                    ["highway_major_casing" "line-color"  "rgb(213, 213, 213)"]
+                    ["landuse_residential"  "fill-color"  "rgb(234, 234, 230)"]
+                    ["wood"                 "fill-color"  "rgb(220, 224, 220)"]]
+        defaults (into {} (map (fn [[l p c]] [l {:paint p :default c}]) layer-defs))
+        colors (r/atom (into {} (map (fn [[l _ c]] [l c]) layer-defs)))
+        random-color (fn []
+                       (let [h (rand-int 360)
+                             s (+ 40 (rand-int 41))
+                             l (+ 40 (rand-int 31))]
+                         (str "hsl(" h ", " s "%, " l "%)")))
+        apply-all (fn []
+                    (when-let [^js m @map-ref]
+                      (doseq [[layer {:keys [paint]}] defaults]
+                        (.setPaintProperty m layer paint (get @colors layer)))))]
+    (fn []
+      [:section
+       [:h2 "Dynamic Styling"]
+       [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 12})
+                                :map-style default-stylesheet}
+        [interop/with-map (fn [m] (reset! map-ref m) [:<>])]
+        [ctrl/navigation-control {:position "top-right"}]]
+       [:p "Change map layer styles programmatically:"]
+       [:div {:style {:margin-top "12px"}}
+        [:button {:on-click (fn [_]
+                              (doseq [[layer _ _] layer-defs]
+                                (swap! colors assoc layer (random-color)))
+                              (apply-all))}
+         "🎲 I'm Feeling Lucky"]
+        [:button {:on-click (fn [_]
+                              (doseq [[layer _ default] layer-defs]
+                                (swap! colors assoc layer default))
+                              (apply-all))}
+         "↺ Reset Defaults"]]
+       [:table
+        [:thead
+         [:tr
+          [:th "Layer"]
+          [:th "Paint"]
+          [:th "Color"]]]
+        [:tbody
+         (doall
+          (for [[layer {:keys [paint default]}] defaults]
+            ^{:key layer}
+            [:tr
+             [:td {:style {:font-family "monospace" :font-size "13px"}} layer]
+             [:td {:style {:font-family "monospace" :font-size "13px"}} paint]
+             [:td
+              [:span {:style {:display "inline-block"
+                              :width "14px"
+                              :height "14px"
+                              :background-color (get @colors layer)
+                              :border "1px solid #999"
+                              :margin-right "6px"
+                              :vertical-align "middle"}}]
+              [:code (get @colors layer)]]]))]]])))
 
 (defn style-by-numeric-section []
   [:section
@@ -559,11 +655,11 @@
                        :section barebones-section}
    :basemaps         {:title "Basemaps"
                       :section basemaps-section}
-   :on-click-event   {:title "on-click event"
+   :on-click-event   {:title ":on-click event"
                       :section on-click-event-section}
-   :on-move-event   {:title "on-move event"
+   :on-move-event   {:title ":on-move event"
                      :section on-move-event-section}
-   :on-mouse-move-event {:title "on-mouse-move event"
+   :on-mouse-move-event {:title ":on-mouse-move event"
                          :section on-mouse-move-event-section}
    :cluster          {:title "Cluster"
                       :section cluster-section}
@@ -571,7 +667,7 @@
                       :section controls-section}
    :drawing          {:title "Drawing Features"
                       :section drawing-section}
-   :dynamic-style    {:title "⚠️ Dynamic Styling"
+   :dynamic-style    {:title "Dynamic Styling"
                       :section dynamic-styling-section}
    :flyto            {:title "Fly To Location"
                       :section flyto-section}
@@ -585,11 +681,13 @@
                       :section heatmap-section}
    :labels           {:title "Labeling"
                       :section label-section}
-   :layer-switcher   {:title "⚠️ Layer Switcher"
+   :layer-interact   {:title "⚠️ Layer Interactivity"
+                      :section layer-interactivity-section}
+   :layer-switcher   {:title "Layer Switcher"
                       :section layer-switcher-section}
-   :limit-interact   {:title "Limit Interactivity"
+   :limit-interact   {:title "Limit Viewport"
                       :section limit-interactivity-section}
-   :overlays         {:title "Marker + Popup"
+   :overlays         {:title "Markers and Popups"
                       :section overlay-section}
    :reframe          {:title "Reframe integration"
                       :section reframe-section}
@@ -625,6 +723,7 @@
              :flyto       (code-block (code-string flyto-section))
              :sources          (code-block (code-string point-features-section))
              :layer-switcher   (code-block (code-string layer-switcher-section))
+             :layer-interact   (code-block (code-string layer-interactivity-section))
              :style-by-numeric (code-block (code-string style-by-numeric-section))
              :geojson-http     (code-block (code-string geojson-http-section))
              :geojson-manual   (code-block (code-string geojson-manual-http-section))
