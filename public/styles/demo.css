@@ -15,6 +15,11 @@ h2 {
   margin-bottom: 0.5rem;
 }
 
+pre {
+  padding: 0.05rem;
+  margin-bottom: 0.5rem;
+}
+
 .popup {
   color: #444;
 }

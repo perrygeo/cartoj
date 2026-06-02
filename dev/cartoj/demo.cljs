@@ -20,9 +20,32 @@
 (def sf-coords
   {:longitude -122.4194 :latitude 37.7749 :zoom 7})
 
-(defn code-block
+(defn code-block-render
+  "Pure render function: returns hiccup for a syntax-highlighted code block.
+   Testable without a DOM."
   [src]
   [:pre [:code {:class "language-clojure"} src]])
+
+(defn code-block
+  "Reagent Form-3 component. A :ref alone is insufficient because React
+   only fires it on mount/unmount; tab switches reuse the same <code>
+   element and just swap the text node, wiping the hljs spans. So we
+   re-highlight from :component-did-mount AND :component-did-update."
+  [_src]
+  (let [el-ref     (atom nil)
+        save-ref!  (fn [el] (reset! el-ref el))
+        highlight! (fn [_this]
+                     (when-let [el @el-ref]
+                       (js-delete (.-dataset el) "highlighted")
+                       (js/hljs.highlightElement el)))]
+    (r/create-class
+     {:display-name         "code-block"
+      :component-did-mount  highlight!
+      :component-did-update highlight!
+      :reagent-render
+      (fn [src]
+        [:pre [:code {:class "language-clojure"
+                      :ref   save-ref!} src]])})))
 
 ;; In general we want to use Reagent's Form-2 component pattern.
 ;;   The outer function runs once on mount, returning a closure.
@@ -38,7 +61,8 @@
     (fn []
       [:section
        [:h2 "On mouse move event"]
-       [cartoj/interactive-map {:map-style default-stylesheet
+       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
+                                :map-style default-stylesheet
                                 :on-mouse-move pos-handler}
         [ctrl/navigation-control {:position "top-right"}]]
        [:table
@@ -63,7 +87,8 @@
     (fn []
       [:section
        [:h2 "On click event"]
-       [cartoj/interactive-map {:map-style default-stylesheet
+       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
+                                :map-style default-stylesheet
                                 :on-click click-handler}
         [ctrl/navigation-control {:position "top-right"}]]
        [:table
@@ -82,7 +107,7 @@
 (defn controls-section []
   [:section
    [:h2 "Interactive map controls"]
-   [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 1})
+   [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                             :map-style default-stylesheet}
     [ctrl/navigation-control {:position "top-right"}]
     [ctrl/fullscreen-control {:position "top-left"}]
@@ -106,7 +131,7 @@
     (fn []
       [:section
        [:h2 "Fly To Location"]
-       [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 1})
+       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                                 :map-style default-stylesheet}
         [interop/with-map (fn [m] (reset! map-ref m) [:<>])]
         [ctrl/navigation-control {:position "top-right"}]]
@@ -125,7 +150,7 @@
 (defn geocoder-section []
   [:section
    [:h2 "Geocoder"]
-   [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 4})
+   [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                             :map-style default-stylesheet}
     [geocoder/geocoder-control {:position "top-left"
                                 :marker true
@@ -316,7 +341,7 @@
 (defn label-section []
   [:section
    [:h2 "Labeling a GeoJSON HTTP Source"]
-   [cartoj/interactive-map {:initial-view-state {:longitude 0 :latitude 0 :zoom 0}
+   [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                             :map-style default-stylesheet}
     [sources/source {:id "cities"
                      :type "geojson"
@@ -385,7 +410,7 @@
 (defn geojson-http-section []
   [:section
    [:h2 "GeoJSON HTTP Source"]
-   [cartoj/interactive-map {:initial-view-state {:longitude 0 :latitude 0 :zoom 0}
+   [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                             :map-style default-stylesheet}
     [sources/source {:id "cities"
                      :type "geojson"
@@ -466,7 +491,7 @@
     (fn []
       [:section
        [:h2 "Cluster"]
-       [cartoj/interactive-map {:initial-view-state {:longitude -122.4194 :latitude 37.7749 :zoom 1}
+       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                                 :map-style default-stylesheet
                                 :interactive-layer-ids ["clusters"]
                                 :on-click on-click}
@@ -655,7 +680,7 @@
     (fn []
       [:section
        [:h2 "Drawing Features"]
-       [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 12})
+       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                                 :map-style default-stylesheet}
         [draw/draw-control {:position "top-left"
                             :on-render on-render}]]
@@ -670,7 +695,8 @@
 
 (defn barebones-section []
   [:section
-   [cartoj/interactive-map {:map-style  "https://demotiles.maplibre.org/style.json"}]
+   [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
+                            :map-style  "https://demotiles.maplibre.org/style.json"}]
    [:p "Minimum viable interactive map."]])
 
 (defn basemaps-section []
@@ -687,7 +713,7 @@
     (fn []
       [:section
        [:h2 "Basemaps"]
-       [cartoj/interactive-map {:initial-view-state {:latitude 20 :zoom 0.7}
+       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                                 :map-style @selected-style}
         [ctrl/navigation-control {:position "top-right"}]]
        [:p "Demonstrate switching between different public basemaps"]
@@ -711,15 +737,15 @@
                        :section barebones-section}
    :basemaps         {:title "Basemaps"
                       :section basemaps-section}
-   :on-click-event   {:title ":on-click event"
+   :on-click-event   {:title "Handle :on-click"
                       :section on-click-event-section}
-   :on-move-event   {:title ":on-move event"
+   :on-move-event   {:title "Handle :on-move"
                      :section on-move-event-section}
-   :on-mouse-move-event {:title ":on-mouse-move event"
+   :on-mouse-move-event {:title "Handle :on-mouse-move"
                          :section on-mouse-move-event-section}
    :cluster          {:title "Cluster"
                       :section cluster-section}
-   :controls         {:title "Interactive Map Controls"
+   :controls         {:title "Controls"
                       :section controls-section}
    :drawing          {:title "Drawing Features"
                       :section drawing-section}
@@ -769,30 +795,30 @@
     [:div.demo-main
      [:div [section]]
      [:div (case @selected-tab
-             :on-click-event (code-block (code-string on-click-event-section))
-             :on-mouse-move-event (code-block (code-string on-mouse-move-event-section))
-             :on-move-event (code-block (code-string on-move-event-section))
-             :controls    (code-block (code-string controls-section))
-             :reframe     (code-block (code-string on-move-event-section))
-             :overlays    (code-block (code-string overlay-section))
-             :geocoder    (code-block (code-string geocoder-section))
-             :flyto       (code-block (code-string flyto-section))
-             :sources          (code-block (code-string point-features-section))
-             :layer-switcher   (code-block (code-string layer-switcher-section))
-             :layer-interact   (code-block (code-string layer-interactivity-section))
-             :style-by-numeric (code-block (code-string style-by-numeric-section))
-             :geojson-http     (code-block (code-string geojson-http-section))
-             :geojson-manual   (code-block (code-string geojson-manual-http-section))
-             :heatmap          (code-block (code-string heatmap-section))
-             :cluster          (code-block (code-string cluster-section))
-             :limit-interact   (code-block (code-string limit-interactivity-section))
-             :dynamic-style    (code-block (code-string dynamic-styling-section))
-             :side-by-side     (code-block (code-string side-by-side-section))
-             :terrain          (code-block (code-string terrain-section))
-             :drawing          (code-block (code-string drawing-section))
-             :labels         (code-block (code-string label-section))
-             :basemaps       (code-block (code-string basemaps-section))
-             :barebones       (code-block (code-string barebones-section))
+             :on-click-event [code-block (code-string on-click-event-section)]
+             :on-mouse-move-event [code-block (code-string on-mouse-move-event-section)]
+             :on-move-event [code-block (code-string on-move-event-section)]
+             :controls    [code-block (code-string controls-section)]
+             :reframe     [code-block (code-string on-move-event-section)]
+             :overlays    [code-block (code-string overlay-section)]
+             :geocoder    [code-block (code-string geocoder-section)]
+             :flyto       [code-block (code-string flyto-section)]
+             :sources          [code-block (code-string point-features-section)]
+             :layer-switcher   [code-block (code-string layer-switcher-section)]
+             :layer-interact   [code-block (code-string layer-interactivity-section)]
+             :style-by-numeric [code-block (code-string style-by-numeric-section)]
+             :geojson-http     [code-block (code-string geojson-http-section)]
+             :geojson-manual   [code-block (code-string geojson-manual-http-section)]
+             :heatmap          [code-block (code-string heatmap-section)]
+             :cluster          [code-block (code-string cluster-section)]
+             :limit-interact   [code-block (code-string limit-interactivity-section)]
+             :dynamic-style    [code-block (code-string dynamic-styling-section)]
+             :side-by-side     [code-block (code-string side-by-side-section)]
+             :terrain          [code-block (code-string terrain-section)]
+             :drawing          [code-block (code-string drawing-section)]
+             :labels         [code-block (code-string label-section)]
+             :basemaps       [code-block (code-string basemaps-section)]
+             :barebones       [code-block (code-string barebones-section)]
              [:code "placeholder"])]]))
 
 (defn app []
