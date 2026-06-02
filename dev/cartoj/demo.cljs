@@ -237,7 +237,7 @@
    [:p "Add a layer to label a source by attribute."]])
 
 (defn geojson-manual-http-section []
-  (let [collection (r/atom nil)
+  (let [collection (r/atom (clj->js {}))
         waiting-message (r/atom nil)
         fetch-json-with (fn [url callback]
                           (-> (js/fetch url)
