@@ -24,6 +24,11 @@
   [src]
   [:pre [:code {:class "language-clojure"} src]])
 
+;; In general we want to use Reagent's Form-2 component pattern.
+;;   The outer function runs once on mount, returning a closure.
+;;   The inner function is called by Reagent on each re-render,
+;;   so the reagant atom holding state persists across renders.
+
 (defn on-mouse-move-event-section []
   (let [last-point (r/atom nil)
         pos-handler (fn [el]
@@ -107,14 +112,15 @@
         [ctrl/navigation-control {:position "top-right"}]]
 
        [:p "Smooth camera transitions between locations:"
-        (for [city cities]
-          ^{:key (:name city)}
-          [:div
-           [:a {:href "#"
-                :on-click (fn [e]
-                            (.preventDefault e)
-                            (on-select-city city))}
-            (:name city)]])]])))
+        [:ul
+         (for [city cities]
+           ^{:key (:name city)}
+           [:li
+            [:a {:href "#"
+                 :on-click (fn [e]
+                             (.preventDefault e)
+                             (on-select-city city))}
+             (:name city)]])]]])))
 
 (defn geocoder-section []
   [:section
@@ -346,13 +352,14 @@
         reset-handler (fn [_]
                         (reset! collection  (clj->js {})))
         click-handler (fn [_]
+                        (reset! collection  (clj->js {}))
                         (reset! waiting-message "fetching cities geojson...")
                         (fetch-json-with "/data/ne_110m_populated_places_simple.geojson" #(reset! collection  %))
                         (js/setTimeout #(reset! waiting-message nil) 960))]
     (fn []
       [:section
        [:h2 "GeoJSON, manual HTTP"]
-       [cartoj/interactive-map {:initial-view-state {:longitude 0 :latitude 0 :zoom 0}
+       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                                 :map-style default-stylesheet}
         [sources/source {:id "cities"
                          :type "geojson"
@@ -399,7 +406,7 @@
     (fn []
       [:section
        [:h2 "Heatmap"]
-       [cartoj/interactive-map {:initial-view-state {:longitude -179.9 :latitude 30 :zoom 0.8}
+       [cartoj/interactive-map {:initial-view-state {:longitude -129.9 :latitude 25 :zoom 0.8}
                                 :map-style default-stylesheet}
         [sources/source {:id "earthquakes" :type "geojson" :data points}
          [sources/layer {:id "earthquake-heatmap"
@@ -666,11 +673,6 @@
    [cartoj/interactive-map {:map-style  "https://demotiles.maplibre.org/style.json"}]
    [:p "Minimum viable interactive map."]])
 
-;; In general we want to use Reagent's Form-2 component pattern. 
-;;   The outer function runs once on mount, returning a closure. 
-;;   The inner function is called by Reagent on each re-render,
-;;   so the reagant atom holding state persists across renders.
-
 (defn basemaps-section []
   (let [basemap-styles [{:name "[OpenFreeMap] Liberty (Street)" :url "https://tiles.openfreemap.org/styles/liberty"}
                         {:name "[OpenFreeMap] Bright"           :url "https://tiles.openfreemap.org/styles/bright"}
@@ -704,9 +706,7 @@
 (def tabs
   (sorted-map
    ;; TODO 
-   ;; interact with map features
-   ;; custom MVT source
-   ;; Time series + typeahead filter features in map view
+   ;; Time series / typeahead filter features in map view
    :barebones         {:title "Barebones"
                        :section barebones-section}
    :basemaps         {:title "Basemaps"
