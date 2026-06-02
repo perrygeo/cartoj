@@ -201,12 +201,68 @@
             The structure of the \"Feature\" and \"FeatureCollection\" is based on the GeoJSON standard."]])))
 
 (defn layer-interactivity-section []
-  [:section
-   [:h2 "⚠️ Layer Interactivity"]
-   [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 3})
-                            :map-style default-stylesheet}
-    [ctrl/navigation-control {:position "top-right"}]]
-   [:p "Choose which layers to make interactive, making them available on mouse move."]])
+  (let [;; Layer-id groups based on OpenFreeMap's Positron stylesheet.
+        groups {:roads     ["highway_path" "highway_minor"
+                            "highway_major_casing" "highway_major_inner"
+                            "highway_major_subtle"
+                            "highway_motorway_casing" "highway_motorway_inner"
+                            "highway_motorway_subtle"
+                            "tunnel_motorway_casing" "tunnel_motorway_inner"
+                            "highway_motorway_bridge_casing"
+                            "highway_motorway_bridge_inner"
+                            "road_area_pier" "road_pier"]
+                :water     ["water" "water_intermittent" "water_pattern"
+                            "waterway"]
+                :buildings ["building" "building-top"]}
+        labels   [[:roads "Roads"]
+                  [:water "Water"]
+                  [:buildings "Buildings"]]
+        active   (r/atom #{:roads :water :buildings})
+        cursor   (r/atom "auto")
+        clicked  (r/atom nil)
+        on-mouse-move (fn [^js evt]
+                        (let [^js features (.-features evt)
+                              ^js feature  (when features (aget features 0))]
+                          (when feature
+                            (reset! clicked
+                                    {:layer-id   (.. feature -layer -id)
+                                     :properties (js->clj (.-properties feature)
+                                                          :keywordize-keys true)}))))
+        on-enter (fn [_] (reset! cursor "pointer"))
+        on-leave (fn [_] (reset! cursor "auto") (reset! clicked nil))
+        toggle   (fn [k]
+                   (swap! active (fn [s] (if (contains? s k) (disj s k) (conj s k)))))]
+    (fn []
+      (let [ids (into [] (mapcat groups) @active)
+            ;; ["nonexist"] when empty so mouse-enter/leave never fire on a
+            ;; feature, matching the upstream custom-cursor example.
+            interactive-ids (if (seq ids) ids ["nonexist"])]
+        [:section
+         [:h2 "Layer Interactivity"]
+         [cartoj/interactive-map
+          {:initial-view-state (merge sf-coords {:zoom 12})
+           :map-style default-stylesheet
+           :cursor @cursor
+           :interactive-layer-ids interactive-ids
+           :on-mouse-move on-mouse-move
+           :on-mouse-enter on-enter
+           :on-mouse-leave on-leave}
+          [ctrl/navigation-control {:position "top-right"}]]
+         [:p "Pick which layer categories should be interactive. The cursor
+              swaps to a pointer while hovering an interactive feature;
+              clicking shows what was hit."]
+         [:div.control-panel
+          (for [[k label] labels]
+            ^{:key (name k)}
+            [:label
+             [:input {:type "checkbox"
+                      :checked (contains? @active k)
+                      :on-change (fn [_] (toggle k))}]
+             label])]
+         (if-let [c @clicked]
+           [:pre [:code (with-out-str (pprint c))]]
+           [:p {:style {:color "#888"}}
+            "No feature selected yet — mouse over a feature from an interactive layer on the map."])]))))
 
 (defn layer-switcher-section []
   (let [map-ref (atom nil)
@@ -681,7 +737,7 @@
                       :section heatmap-section}
    :labels           {:title "Labeling"
                       :section label-section}
-   :layer-interact   {:title "⚠️ Layer Interactivity"
+   :layer-interact   {:title "Layer Interactivity"
                       :section layer-interactivity-section}
    :layer-switcher   {:title "Layer Switcher"
                       :section layer-switcher-section}
