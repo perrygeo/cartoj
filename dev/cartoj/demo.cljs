@@ -397,11 +397,32 @@
 
 (defn style-by-numeric-section []
   [:section
-   [:h2 "⚠️ Style by numeric properties"]
-   [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 3})
+   [:h2 "Style by numeric properties"]
+   [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                             :map-style default-stylesheet}
-    [ctrl/navigation-control {:position "top-right"}]]
-   [:p "Choropleth"]])
+    [ctrl/navigation-control {:position "top-right"}]
+    [sources/source {:id "cities"
+                     :type "geojson"
+                     :data "/data/ne_110m_populated_places_simple.geojson"}
+     [sources/layer {:id "cities-circles"
+                     :type "circle"
+                     :source "cities"
+                     :paint {:circle-radius ["step" ["get" "pop_max"] 2
+                                             250000 3
+                                             1000000 4
+                                             2500000 6
+                                             5000000 8]
+                             :circle-color ["step" ["get" "pop_max"] "#ffffb2"
+                                            250000  "#fecc5c"
+                                            1000000  "#fd8d3c"
+                                            2500000 "#f03b20"
+                                            5000000 "#bd0026"]
+                             :circle-opacity 0.8
+                             :circle-stroke-width 1
+                             :circle-stroke-color "#fff"}}]]]
+   [:p
+    "Using the " [:code "pop_max"] " property of the cities dataset, "
+    "create a larger & darker red circle for cities with higher populations."]])
 
 (defn style-by-category-section []
   [:section
@@ -571,7 +592,7 @@
                       :section point-features-section}
    :style-by-category {:title "⚠️ Style by categorical"
                        :section style-by-category-section}
-   :style-by-numeric {:title "⚠️ Style by numeric"
+   :style-by-numeric {:title "Style by numeric"
                       :section style-by-numeric-section}
    :terrain          {:title "Terrain"
                       :section terrain-section}))
@@ -599,6 +620,7 @@
              :flyto       (code-block (code-string flyto-section))
              :sources          (code-block (code-string point-features-section))
              :layer-switcher   (code-block (code-string layer-switcher-section))
+             :style-by-numeric (code-block (code-string style-by-numeric-section))
              :geojson-http     (code-block (code-string geojson-http-section))
              :geojson-manual   (code-block (code-string geojson-manual-http-section))
              :heatmap          (code-block (code-string heatmap-section))
