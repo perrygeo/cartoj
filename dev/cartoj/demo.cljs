@@ -8,14 +8,14 @@
             [cartoj.sources :as sources]
             [cartoj.controls :as ctrl]
             [cartoj.geocoder :as geocoder]
+            [cartoj.draw :as draw]
             [cartoj.interop :as interop]
+            [cljs.pprint :refer [pprint]]
             [cartoj.re-frame :as cartoj-rf])
   (:require-macros [cartoj.demo-macros :refer [code-string]]))
 
-(def demo-stylesheet
-  "https://tiles.openfreemap.org/styles/positron"
-  #_"https://pmtiles.perrygeo.com/styles/white.json"
-  #_"https://demotiles.maplibre.org/style.json")
+(def default-stylesheet
+  "https://tiles.openfreemap.org/styles/positron")
 
 (def sf-coords
   {:longitude -122.4194 :latitude 37.7749 :zoom 7})
@@ -24,34 +24,61 @@
   [src]
   [:pre [:code {:class "language-clojure"} src]])
 
-(defn click-event-section []
-  (let [click-handler (fn [el]
+(defn on-mouse-move-event-section []
+  (let [last-point (r/atom nil)
+        pos-handler (fn [el]
+                      (let [pos (.-lngLat el)]
+                        (reset! last-point {:longitude (.-lng pos)
+                                            :latitude (.-lat pos)})))]
+    (fn []
+      [:section
+       [:h2 "On mouse move event"]
+       [cartoj/interactive-map {:map-style default-stylesheet
+                                :on-mouse-move pos-handler}
+        [ctrl/navigation-control {:position "top-right"}]]
+       [:table
+        [:tbody
+         [:tr
+          [:th]
+          [:th "Longitude"]
+          [:th "Latitude"]]
+         (when @last-point
+           [:tr
+            [:td "Last point"]
+            [:td (.toFixed (:longitude @last-point) 4)]
+            [:td (.toFixed (:latitude @last-point) 4)]])]]
+       [:p "Get the coordinates of your cursor as the mouse moves."]])))
+
+(defn on-click-event-section []
+  (let [last-point (r/atom nil)
+        click-handler (fn [el]
                         (let [pos (.-lngLat el)]
-                          (js/alert
-                           (str "clicked lng:" (.toFixed (.-lng pos) 4)
-                                " lat:" (.toFixed (.-lat pos) 4)))))]
+                          (reset! last-point {:longitude (.-lng pos)
+                                              :latitude (.-lat pos)})))]
     (fn []
       [:section
        [:h2 "On click event"]
-       [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 10})
-                                :map-style demo-stylesheet
-                                :class-name "imap"
+       [cartoj/interactive-map {:map-style default-stylesheet
                                 :on-click click-handler}
         [ctrl/navigation-control {:position "top-right"}]]
-       ;; TODO
-       ;; more information about click like
-       ;; https://github.com/visgl/react-map-gl/blob/f295bd524e01b7fc0fb9c9e9d1d5bd47b055b67d/examples/maplibre/custom-cursor/src/app.tsx#L25
-       ;; and put that info in a div overlaying the map, instead of an alert
-       [:p "Uncontrolled in that clojurescript has no visibility into map state,
-          beyond setting the initial view state and responding via registered handlers.
-          in this case :on-click"]])))
+       [:table
+        [:tbody
+         [:tr
+          [:th]
+          [:th "Longitude"]
+          [:th "Latitude"]]
+         (when @last-point
+           [:tr
+            [:td "Last point"]
+            [:td (.toFixed (:longitude @last-point) 4)]
+            [:td (.toFixed (:latitude @last-point) 4)]])]]
+       [:p "Get the coordinates of a map click."]])))
 
 (defn controls-section []
   [:section
    [:h2 "Interactive map controls"]
    [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 1})
-                            :map-style demo-stylesheet
-                            :class-name "imap"}
+                            :map-style default-stylesheet}
     [ctrl/navigation-control {:position "top-right"}]
     [ctrl/fullscreen-control {:position "top-left"}]
     [ctrl/geolocate-control {:position "top-right"}]
@@ -75,8 +102,7 @@
       [:section
        [:h2 "Fly To Location"]
        [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 1})
-                                :map-style demo-stylesheet
-                                :class-name "imap"}
+                                :map-style default-stylesheet}
         [interop/with-map (fn [m] (reset! map-ref m) [:<>])]
         [ctrl/navigation-control {:position "top-right"}]]
 
@@ -94,34 +120,37 @@
   [:section
    [:h2 "Geocoder"]
    [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 4})
-                            :map-style demo-stylesheet
-                            :class-name "imap"}
+                            :map-style default-stylesheet}
     [geocoder/geocoder-control {:position "top-right"
                                 :marker true
                                 :on-result (fn [^js evt]
                                              (js/console.log "geocoder result:" (.-result evt)))}]]
    [:p "Search for places using Nominatim geocoding."]])
 
-(defn controlled-section []
+(defn on-move-event-section []
+  ;; TODO remove reframe and use reagant form-2
+  (let [state (or @(rf/subscribe [::cartoj-rf/view-state]) sf-coords)]
+    [:section
+     [:h2 "On Map Move (changing viewport)"]
+     [cartoj/interactive-map
+      (merge state
+             {:map-style default-stylesheet
+              :on-move (cartoj-rf/on-move)})
+      [ctrl/navigation-control {:position "top-right"}]]
+     [:pre [:code (with-out-str (pprint state))]]
+     [:p "By registering an on-move handler, and subscribing to view-state,
+          Clojurescript has full access to the map state."]]))
+
+(defn reframe-section []
   (let [state (or @(rf/subscribe [::cartoj-rf/view-state]) sf-coords)]
     [:section
      [:h2 "Controlled map"]
      [cartoj/interactive-map
       (merge state
-             {:map-style demo-stylesheet
-              :class-name "imap"
+             {:map-style default-stylesheet
               :on-move (cartoj-rf/on-move)})
       [ctrl/navigation-control {:position "top-right"}]]
-     [:table
-      [:tbody
-       [:tr
-        [:th "Longitude"]
-        [:th "Latitude"]
-        [:th "Zoom"]]
-       [:tr
-        [:td (.toFixed (:longitude state) 4)]
-        [:td (.toFixed (:latitude state) 4)]
-        [:td (.toFixed (:zoom state) 1)]]]]
+     [:code [:pre (with-out-str (pprint state))]]
      [:p "By registering an on-move handler, and subscribing to view-state,
           Clojurescript has full access to the map state."]]))
 
@@ -131,8 +160,7 @@
       [:section
        [:h2  "Marker + Popup"]
        [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 7})
-                                :class-name "imap"
-                                :map-style demo-stylesheet}
+                                :map-style default-stylesheet}
         [overlay/marker
          {:longitude (:longitude sf-coords)
           :latitude  (:latitude sf-coords)
@@ -157,8 +185,7 @@
       [:section
        [:h2  "Point Features"]
        [cartoj/interactive-map {:initial-view-state {:longitude -98 :latitude 38 :zoom 3}
-                                :map-style demo-stylesheet
-                                :class-name "imap"}
+                                :map-style default-stylesheet}
         [sources/source {:id "cities"
                          :type "geojson"
                          :data (clj->js sample-geojson)}
@@ -177,8 +204,7 @@
   [:section
    [:h2 "⚠️ Layer Switcher"]
    [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 3})
-                            :map-style demo-stylesheet
-                            :class-name "imap"}
+                            :map-style default-stylesheet}
     [ctrl/navigation-control {:position "top-right"}]]
    [:p "Choose which layers to display on the map."]])
 
@@ -186,8 +212,7 @@
   [:section
    [:h2 "Labeling a GeoJSON HTTP Source"]
    [cartoj/interactive-map {:initial-view-state {:longitude 0 :latitude 0 :zoom 0}
-                            :map-style demo-stylesheet
-                            :class-name "imap"}
+                            :map-style default-stylesheet}
     [sources/source {:id "cities"
                      :type "geojson"
                      :data "/data/ne_110m_populated_places_simple.geojson"}
@@ -206,7 +231,7 @@
                               :text-offset [0 0]
                               :text-anchor "top"}
                      :paint {:text-color "#333"
-                             :text-halo-color "rgba(255,255,255,0.85)"
+                             :text-halo-color "rgba(255,255,235,0.85)"
                              :text-halo-width 2
                              :text-halo-blur 1}}]]]
    [:p "Add a layer to label a source by attribute."]])
@@ -217,8 +242,7 @@
       [:section
        [:h2 "GeoJSON HTTP Source"]
        [cartoj/interactive-map {:initial-view-state {:longitude 0 :latitude 0 :zoom 0}
-                                :map-style demo-stylesheet
-                                :class-name "imap"}
+                                :map-style default-stylesheet}
         [sources/source {:id "cities"
                          :type "geojson"
                          :data (clj->js sample-geojson)}
@@ -239,8 +263,7 @@
       [:section
        [:h2 "Heatmap"]
        [cartoj/interactive-map {:initial-view-state {:longitude -179.9 :latitude 30 :zoom 0.8}
-                                :map-style demo-stylesheet
-                                :class-name "imap"}
+                                :map-style default-stylesheet}
         [sources/source {:id "earthquakes" :type "geojson" :data points}
          [sources/layer {:id "earthquake-heatmap"
                          :type "heatmap"
@@ -300,8 +323,7 @@
       [:section
        [:h2 "Cluster"]
        [cartoj/interactive-map {:initial-view-state {:longitude -122.4194 :latitude 37.7749 :zoom 1}
-                                :map-style demo-stylesheet
-                                :class-name "imap"
+                                :map-style default-stylesheet
                                 :interactive-layer-ids ["clusters"]
                                 :on-click on-click}
         [interop/with-map
@@ -323,8 +345,7 @@
       [:section
        [:h2 "Limit Interactivity"]
        [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 8})
-                                :map-style demo-stylesheet
-                                :class-name "imap"
+                                :map-style default-stylesheet
                                 :max-bounds sfbay-bounds
                                 :min-zoom 7
                                 :max-zoom 12
@@ -336,8 +357,7 @@
   [:section
    [:h2 "⚠️ Dynamic Styling"]
    [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 10})
-                            :map-style demo-stylesheet
-                            :class-name "imap"}
+                            :map-style default-stylesheet}
     [ctrl/navigation-control {:position "top-right"}]]
    [:p "Change map or layer styles programmatically in response to user input."]])
 
@@ -345,8 +365,7 @@
   [:section
    [:h2 "⚠️ Style by numeric properties"]
    [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 3})
-                            :map-style demo-stylesheet
-                            :class-name "imap"}
+                            :map-style default-stylesheet}
     [ctrl/navigation-control {:position "top-right"}]]
    [:p "Choropleth"]])
 
@@ -354,8 +373,7 @@
   [:section
    [:h2 "⚠️ Style by categorical property"]
    [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 3})
-                            :map-style demo-stylesheet
-                            :class-name "imap"}
+                            :map-style default-stylesheet}
     [ctrl/navigation-control {:position "top-right"}]]
    [:p "Style according to unique values"]])
 
@@ -363,8 +381,7 @@
   [:section
    [:h2 "⚠️ Side by Side"]
    [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 3})
-                            :map-style demo-stylesheet
-                            :class-name "imap"}
+                            :map-style default-stylesheet}
     [ctrl/navigation-control {:position "top-right"}]]
    [:p "Compare two map styles or layers side by side."]])
 
@@ -372,24 +389,43 @@
   [:section
    [:h2 "⚠️ Terrain"]
    [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 5})
-                            :map-style demo-stylesheet
-                            :class-name "imap"}
+                            :map-style default-stylesheet}
     [ctrl/navigation-control {:position "top-right"}]]
    [:p "Enable 3D terrain rendering on the map."]])
 
 (defn drawing-section []
-  [:section
-   [:h2 "⚠️ Drawing Features"]
-   [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 10})
-                            :map-style demo-stylesheet
-                            :class-name "imap"}
-    [ctrl/navigation-control {:position "top-right"}]]
-   [:p "Draw and edit geometries directly on the map."]])
+  (let [geometry  (r/atom nil)
+        on-render (fn [_evt ^js draw]
+                    (let [^js fc (.getAll draw)
+                          ^js fs (.-features fc)
+                          ^js f  (when (pos? (.-length fs)) (aget fs 0))]
+                      (reset! geometry
+                              (when f
+                                (js->clj (.-geometry f) :keywordize-keys true)))))]
+    (fn []
+      [:section
+       [:h2 "Drawing Features"]
+       [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 12})
+                                :map-style default-stylesheet}
+        [draw/draw-control {:position "top-left"
+                            :on-render on-render}]]
+       [:div.geometry-panel
+        [:p "Use the draw tools to create a polygon or line.
+            The geometry updates live as you click each vertex; double-click
+            to complete. The GeoJSON-like EDN representation is updated live:"]
+        (if (nil? @geometry)
+          [:p {:style {:color "#888"}} "No geometry yet — draw on the map."]
+          [:pre {:style {:background "#f5f5f5"
+                         :padding "0.75rem"
+                         :border-radius "4px"
+                         :font-size "0.8rem"
+                         :overflow-x "auto"}}
+           (with-out-str (cljs.pprint/pprint @geometry))])]
+       [:br]])))
 
 (defn barebones-section []
   [:section
-   [cartoj/interactive-map {:map-style  "https://demotiles.maplibre.org/style.json"
-                            :class-name "imap"}]
+   [cartoj/interactive-map {:map-style  "https://demotiles.maplibre.org/style.json"}]
    [:p "Minimum viable interactive map."]])
 
 ;; In general we want to use Reagent's Form-2 component pattern. 
@@ -436,21 +472,22 @@
    ;; style by client side filtering (typeahead)
    ;; custom MVT source
    ;; Time series
+   ;; interact with feature layers
    :barebones         {:title "Barebones"
                        :section barebones-section}
    :basemaps         {:title "Basemaps"
                       :section basemaps-section}
    :on-click-event   {:title "on-click event"
-                      :section click-event-section}
+                      :section on-click-event-section}
    :on-move-event   {:title "on-move event"
-                     :section controlled-section}
-   :on-mouse-over-event {:title "⚠️  on-mouse-over event"
-                         :section click-event-section}
+                     :section on-move-event-section}
+   :on-mouse-move-event {:title "on-mouse-move event"
+                         :section on-mouse-move-event-section}
    :cluster          {:title "Cluster"
                       :section cluster-section}
    :controls         {:title "Interactive Map Controls"
                       :section controls-section}
-   :drawing          {:title "⚠️ Drawing Features"
+   :drawing          {:title "Drawing Features"
                       :section drawing-section}
    :dynamic-style    {:title "⚠️ Dynamic Styling"
                       :section dynamic-styling-section}
@@ -473,7 +510,7 @@
    :overlays         {:title "Marker + Popup"
                       :section overlay-section}
    :reframe          {:title "Reframe integration"
-                      :section controlled-section}
+                      :section reframe-section}
    :side-by-side     {:title "⚠️ Side by Side"
                       :section side-by-side-section}
    :sources          {:title "Point Features"
@@ -498,9 +535,11 @@
     [:div.demo-main
      [:div [section]]
      [:div (case @selected-tab
-             :click-event (code-block (code-string click-event-section))
+             :on-click-event (code-block (code-string on-click-event-section))
+             :on-mouse-move-event (code-block (code-string on-mouse-move-event-section))
+             :on-move-event (code-block (code-string on-move-event-section))
              :controls    (code-block (code-string controls-section))
-             :reframe     (code-block (code-string controlled-section))
+             :reframe     (code-block (code-string on-move-event-section))
              :overlays    (code-block (code-string overlay-section))
              :geocoder    (code-block (code-string geocoder-section))
              :flyto       (code-block (code-string flyto-section))

@@ -31,7 +31,7 @@
   [& args]
   (let [[prop-map children] (props/props-and-children args)
         prop-map  (or prop-map {})
-        class-name (:class-name prop-map)
+        class-name (or (:class-name prop-map) "cartoj-interactive-map")
         js-props  (props/props->js (dissoc prop-map :class-name))
         map-el    (into [:r> Map js-props] children)]
     (if class-name

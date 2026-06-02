@@ -17,7 +17,8 @@
              cartoj.controls
              cartoj.interop
              cartoj.re-frame
-             cartoj.pmtiles]}
+             cartoj.pmtiles
+             cartoj.draw]}
 
   :dev
   {:target :browser
