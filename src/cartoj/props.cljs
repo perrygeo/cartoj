@@ -14,7 +14,7 @@
   (:require [clojure.string :as str]
             [clojure.set]))
 
-(defn kebab->camel
+(defn- inner-kebab->camel
   "Convert a kebab-case keyword (or camelCase string) to a camelCase string.
 
   Examples:
@@ -29,6 +29,8 @@
           parts (str/split s #"-")]
       (str (first parts)
            (str/join (map str/capitalize (rest parts)))))))
+
+(def kebab->camel (memoize inner-kebab->camel))
 
 ;; Props that contain nested CLJS data maps that must be converted to JS
 ;; Keys whose nested map values use camelCase keys (JS/CSS conventions).
