@@ -44,6 +44,6 @@
       (is (some? result))
       (is (fn? result))
       ;; Verify the prototype carries the lifecycle methods we wired up.
-      (let [proto (.-prototype result)]
+      (let [^js proto (.-prototype result)]
         (is (fn? (.-componentDidMount proto)))
         (is (fn? (.-componentDidUpdate proto)))))))

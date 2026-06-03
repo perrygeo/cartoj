@@ -65,7 +65,7 @@
       (is (identical? on-render (:on-render cfg))
           "on-render must be threaded into draw-config so the draw.render
            listener can invoke the current consumer callback")
-      (is (undefined? (.-onRender (:draw-props cfg)))
+      (is (undefined? (.-onRender ^js (:draw-props cfg)))
           "on-render must be dissoc'd from the props forwarded to MapboxDraw,
            otherwise mapbox-gl-draw will get an unknown option"))))
 
@@ -78,3 +78,25 @@
       (is (vector? result))
       (is (= :f> (first result)))
       (is (fn? (second result))))))
+
+(deftest draw-control-defaults-combine-disabled
+  (testing "combine_features and uncombine_features default to false"
+    (draw/draw-control {:position "top-left"})
+    (let [cfg @draw/draw-config
+          controls (aget (:draw-props cfg) "controls")]
+      (is (some? controls) "controls should always be present")
+      (is (false? (aget controls "combine_features"))
+          "combine_features must default to false")
+      (is (false? (aget controls "uncombine_features"))
+          "uncombine_features must default to false"))))
+
+(deftest draw-control-allows-overriding-combine
+  (testing "user can explicitly enable combine_features"
+    (draw/draw-control {:position "top-left"
+                        :controls {:combine-features true}})
+    (let [cfg @draw/draw-config
+          controls (aget (:draw-props cfg) "controls")]
+      (is (true? (aget controls "combine_features"))
+          "explicit :combine-features true must override default false")
+      (is (false? (aget controls "uncombine_features"))
+          "uncombine_features must still default to false when not overridden"))))

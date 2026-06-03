@@ -10,21 +10,24 @@
             [cartoj.core :as core]))
 
 (deftest map-returns-reagent-vector
-  (testing "map with no props returns [:r> Map ...] (pre-converted JS props)"
+  (testing "map with no props returns [:div ... :r> Map ...] (always wrapped)"
     (let [result (core/interactive-map {})]
       (is (vector? result))
-      (is (= :r> (first result))))))
+      (is (= :div (first result)))
+      (is (= "cartoj-interactive-map" (get-in result [1 :class]))))))
 
 (deftest map-passes-map-style
   (testing ":map-style is converted to camelCase JS prop"
-    (let [[_ _comp ^js js-props] (core/interactive-map {:map-style "https://example.com/style.json"})]
+    (let [result (core/interactive-map {:map-style "https://example.com/style.json"})
+          [_ _comp ^js js-props] (nth result 2)]
       (is (= "https://example.com/style.json" (.-mapStyle js-props))))))
 
 (deftest map-passes-initial-view-state
   (testing ":initial-view-state nested map is converted to JS"
-    (let [[_ _comp ^js js-props] (core/interactive-map {:initial-view-state {:longitude -122.4
-                                                                             :latitude  37.8
-                                                                             :zoom      14}})
+    (let [result (core/interactive-map {:initial-view-state {:longitude -122.4
+                                                              :latitude  37.8
+                                                              :zoom      14}})
+          [_ _comp ^js js-props] (nth result 2)
           ^js ivs (.-initialViewState js-props)]
       (is (= -122.4 (.-longitude ivs)))
       (is (= 37.8   (.-latitude ivs)))
@@ -33,14 +36,16 @@
 (deftest map-passes-callbacks
   (testing ":on-click callback passes through unchanged"
     (let [cb (fn [e] e)
-          [_ _comp ^js js-props] (core/interactive-map {:on-click cb})]
+          result (core/interactive-map {:on-click cb})
+          [_ _comp ^js js-props] (nth result 2)]
       (is (identical? cb (.-onClick js-props))))))
 
 (deftest map-accepts-children
-  (testing "children are appended after the JS props"
+  (testing "children are appended after the JS props, inside the wrapped :r>"
     (let [child [:div "hello"]
-          result (core/interactive-map {} child)]
-      (is (= child (last result))))))
+          result (core/interactive-map {} child)
+          inner (nth result 2)]
+      (is (= child (last inner))))))
 
 (deftest map-accepts-no-props
   (testing "map can be called with no args (no crash)"
@@ -55,10 +60,11 @@
         (is (undefined? (.-className js-props)))
         (is (= "x" (.-mapStyle js-props)))))))
 
-(deftest map-without-class-name-not-wrapped
-  (testing "no :class-name means no wrapper div — returns [:r> Map ...] directly"
+(deftest map-default-class-name
+  (testing "default class-name is cartoj-interactive-map when not provided"
     (let [result (core/interactive-map {:map-style "x"})]
-      (is (= :r> (first result))))))
+      (is (= :div (first result)))
+      (is (= "cartoj-interactive-map" (get-in result [1 :class]))))))
 
 (deftest map-class-name-wrapper-preserves-children
   (testing "children appear inside the inner Map element when wrapped"

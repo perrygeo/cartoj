@@ -8,7 +8,8 @@
                          :on-delete (fn [^js evt] ...)}]"
   (:require ["@mapbox/mapbox-gl-draw" :default MapboxDraw]
             [cartoj.interop :as interop]
-            [cartoj.props :as props]))
+            [cartoj.props :as props]
+            [clojure.string :as str]))
 
 ;; ---------------------------------------------------------------------------
 ;; MapLibre 3+ compatibility shim
@@ -192,8 +193,15 @@
                 on-render (fn [])}} prop-map
         rest-props   (dissoc prop-map :position :on-create :on-update :on-delete :on-render)
         styles       (get rest-props :styles default-styles)
-        draw-props   (props/props->js (dissoc rest-props :styles))]
+        controls     (merge {:combine-features false :uncombine-features false}
+                            (:controls rest-props))
+        draw-props   (props/props->js (dissoc rest-props :styles :controls))]
     (aset draw-props "styles" (clj->js styles))
+    (aset draw-props "controls"
+          (let [obj (js-obj)]
+            (doseq [[k v] controls]
+              (aset obj (str/replace (name k) "-" "_") v))
+            obj))
     (reset! draw-config
             {:draw-props draw-props
              :position   position

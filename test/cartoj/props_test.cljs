@@ -97,39 +97,39 @@
 
 (deftest props->js-converts-terrain-sky-light-maps
   (testing ":terrain nested CLJS map converted with kebab keys"
-    (let [result (props/props->js {:terrain {:source "my-dem" :exaggeration 1.5}})
+    (let [^js result (props/props->js {:terrain {:source "my-dem" :exaggeration 1.5}})
           ter (.-terrain result)]
       (is (= "my-dem" (.-source ter)))
       (is (= 1.5 (.-exaggeration ter)))))
   (testing ":sky nested CLJS map converted with kebab keys"
-    (let [result (props/props->js {:sky {:sky-color "#80ccff"
-                                          :sky-horizon-blend 0.5}})
+    (let [^js result (props/props->js {:sky {:sky-color "#80ccff"
+                                              :sky-horizon-blend 0.5}})
           sky (.-sky result)]
       (is (= "#80ccff" (aget sky "sky-color")))
       (is (= 0.5 (aget sky "sky-horizon-blend")))))
   (testing ":light nested CLJS map converted with kebab keys"
-    (let [result (props/props->js {:light {:anchor "map"
-                                            :color "#ffffff"}})
+    (let [^js result (props/props->js {:light {:anchor "map"
+                                                :color "#ffffff"}})
           light (.-light result)]
       (is (= "map" (.-anchor light)))
       (is (= "#ffffff" (.-color light)))))
   (testing ":map-style with nested sources gets camelCase, sky gets kebab-case"
-    (let [result (props/props->js {:map-style {:version 8
-                                                :sources {:dem {:type "raster-dem"
-                                                                :tile-size 256}}
-                                                :sky {:sky-color "#80ccff"}
-                                                :layers [{:type "hillshade"
-                                                          :paint {:hillshade-exaggeration 0.5}}]}})
-          ms (.-mapStyle result)]
+    (let [^js result (props/props->js {:map-style {:version 8
+                                                    :sources {:dem {:type "raster-dem"
+                                                                    :tile-size 256}}
+                                                    :sky {:sky-color "#80ccff"}
+                                                    :layers [{:type "hillshade"
+                                                              :paint {:hillshade-exaggeration 0.5}}]}})
+          ^js ms (.-mapStyle result)]
       (is (object? ms))
-      (let [sources (.-sources ms)
-            dem (.-dem sources)]
+      (let [^js sources (.-sources ms)
+            ^js dem (.-dem sources)]
         (is (object? dem))
         (is (= "raster-dem" (.-type dem)))
         (is (= 256 (.-tileSize dem))))
       (let [sky (.-sky ms)]
         (is (= "#80ccff" (aget sky "sky-color"))))
-      (let [layers (.-layers ms)
-            l0 (aget layers 0)
+      (let [^js layers (.-layers ms)
+            ^js l0 (aget layers 0)
             paint (.-paint l0)]
         (is (= 0.5 (aget paint "hillshade-exaggeration")))))))
