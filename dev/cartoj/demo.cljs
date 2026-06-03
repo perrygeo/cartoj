@@ -54,8 +54,8 @@
 
 (defn on-mouse-move-event-section []
   (let [last-point (r/atom nil)
-        pos-handler (fn [el]
-                      (let [pos (.-lngLat el)]
+        pos-handler (fn [^js el]
+                      (let [^js pos (.-lngLat el)]
                         (reset! last-point {:longitude (.-lng pos)
                                             :latitude (.-lat pos)})))]
     (fn []
@@ -65,23 +65,33 @@
                                 :map-style default-stylesheet
                                 :on-mouse-move pos-handler}
         [ctrl/navigation-control {:position "top-right"}]]
-       [:table
+       [:table {:style {:width "250px"}}
         [:tbody
          [:tr
-          [:th]
           [:th "Longitude"]
-          [:th "Latitude"]]
-         (when @last-point
+          [:td (if-let [lng (:longitude @last-point)]
+                 (.toFixed lng 4) "-")]]
+         [:tr
+          [:th "Latitude"]
+          [:td (if-let [lat (:latitude @last-point)]
+                 (.toFixed lat 4) "-")]]]]
+       #_[:table
+          [:tbody
            [:tr
-            [:td "Last point"]
-            [:td (.toFixed (:longitude @last-point) 4)]
-            [:td (.toFixed (:latitude @last-point) 4)]])]]
+            [:th]
+            [:th "Longitude"]
+            [:th "Latitude"]]
+           (when @last-point
+             [:tr
+              [:td "Last point"]
+              [:td (.toFixed (:longitude @last-point) 4)]
+              [:td (.toFixed (:latitude @last-point) 4)]])]]
        [:p "Get the coordinates of your cursor as the mouse moves."]])))
 
 (defn on-click-event-section []
   (let [last-point (r/atom nil)
-        click-handler (fn [el]
-                        (let [pos (.-lngLat el)]
+        click-handler (fn [^js el]
+                        (let [^js pos (.-lngLat el)]
                           (reset! last-point {:longitude (.-lng pos)
                                               :latitude (.-lat pos)})))]
     (fn []
@@ -91,17 +101,16 @@
                                 :map-style default-stylesheet
                                 :on-click click-handler}
         [ctrl/navigation-control {:position "top-right"}]]
-       [:table
+       [:table {:style {:width "250px"}}
         [:tbody
          [:tr
-          [:th]
           [:th "Longitude"]
-          [:th "Latitude"]]
-         (when @last-point
-           [:tr
-            [:td "Last point"]
-            [:td (.toFixed (:longitude @last-point) 4)]
-            [:td (.toFixed (:latitude @last-point) 4)]])]]
+          [:td (if-let [lng (:longitude @last-point)]
+                 (.toFixed lng 4) "-")]]
+         [:tr
+          [:th "Latitude"]
+          [:td (if-let [lat (:latitude @last-point)]
+                 (.toFixed lat 4) "-")]]]]
        [:p "Get the coordinates of a map click."]])))
 
 (defn controls-section []
@@ -168,7 +177,7 @@
              {:map-style default-stylesheet
               :on-move (cartoj-rf/on-move)})
       [ctrl/navigation-control {:position "top-right"}]]
-     [:pre [:code (with-out-str (pprint state))]]
+     [:p [:pre.edn [:code (with-out-str (pprint state))]]]
      [:p "By registering an on-move handler, and subscribing to view-state,
           Clojurescript has full access to the map state."]]))
 
@@ -244,11 +253,17 @@
                             "road_area_pier" "road_pier"]
                 :water     ["water" "water_intermittent" "water_pattern"
                             "waterway"]
-                :buildings ["building" "building-top"]}
+                :buildings ["building" "building-top"]
+                :land      ["park" "landuse_residential" "landcover_wood"
+                            "landcover_glacier" "landcover_ice_shelf"
+                            "landcover_grass" "landcover_sand"
+                            "landcover_farmland" "landcover_rock"
+                            "landcover_wetland"]}
         labels   [[:roads "Roads"]
                   [:water "Water"]
-                  [:buildings "Buildings"]]
-        active   (r/atom #{:roads :water :buildings})
+                  [:buildings "Buildings"]
+                  [:land "Land"]]
+        active   (r/atom #{:roads :water :buildings :land})
         cursor   (r/atom "auto")
         clicked  (r/atom nil)
         on-mouse-move (fn [^js evt]
@@ -278,7 +293,21 @@
            :on-mouse-move on-mouse-move
            :on-mouse-enter on-enter
            :on-mouse-leave on-leave}
-          [ctrl/navigation-control {:position "top-right"}]]
+          [ctrl/navigation-control {:position "top-right"}]
+          ;; Invisible landcover layers for hit-testing only.
+          (for [[id class] [["landcover_grass" "grass"]
+                            ["landcover_sand" "sand"]
+                            ["landcover_farmland" "farmland"]
+                            ["landcover_rock" "rock"]
+                            ["landcover_wetland" "wetland"]]]
+            ^{:key id}
+            [sources/layer {:id id
+                            :type "fill"
+                            :source "openmaptiles"
+                            :source-layer "landcover"
+                            :filter ["==" ["get" "class"] class]
+                            :paint {:fill-color "rgba(0,0,0,0)"
+                                    :fill-opacity 0}}])]
          [:p "Pick which layer categories should be interactive. The cursor
               swaps to a pointer while hovering an interactive feature;
               clicking shows what was hit."]
@@ -835,12 +864,12 @@
 (defonce root (atom nil))
 
 (defn ^:dev/after-load re-render []
-  (.render @root (r/as-element [app])))
+  (.render ^js @root (r/as-element [app])))
 
 (defn init []
   (rf/dispatch-sync [::cartoj-rf/set-view-state sf-coords])
   (reset! root (rdom-client/create-root (js/document.getElementById "app")))
-  (.render @root (r/as-element [app])))
+  (.render ^js @root (r/as-element [app])))
 
 (comment
   (re-render)

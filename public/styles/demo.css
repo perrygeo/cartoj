@@ -16,7 +16,12 @@ h2 {
 }
 
 pre {
-  padding: 0.05rem;
+  padding: 0.1rem;
+  margin-bottom: 0.5rem;
+}
+
+pre.edn {
+  padding: 0.5rem;
   margin-bottom: 0.5rem;
 }
 
@@ -124,4 +129,8 @@ input[type="checkbox"] {
 
 .control-panel a:hover {
   text-decoration: underline;
+}
+
+.cartoj-interactive-map .maplibregl-canvas {
+  cursor: pointer;
 }
