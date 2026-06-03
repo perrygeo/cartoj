@@ -15,13 +15,8 @@ h2 {
   margin-bottom: 0.5rem;
 }
 
-pre {
+pre.clojure {
   padding: 0.1rem;
-  margin-bottom: 0.5rem;
-}
-
-pre.edn {
-  padding: 0.5rem;
   margin-bottom: 0.5rem;
 }
 

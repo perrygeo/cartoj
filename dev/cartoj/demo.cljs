@@ -44,10 +44,17 @@
       :component-did-update highlight!
       :reagent-render
       (fn [src]
-        [:pre [:code {:class "language-clojure"
-                      :ref   save-ref!} src]])})))
+        [:pre.clojure [:code {:class "language-clojure"
+                              :ref   save-ref!} src]])})))
 
-;; In general we want to use Reagent's Form-2 component pattern.
+;; ## App State
+
+(defonce selected-tab (r/atom :barebones))
+
+;; ## Demo sections
+;;
+;; In general we want to use Reagent's Form-2 component pattern,
+;;   to keep the relevant state contained in one example component.
 ;;   The outer function runs once on mount, returning a closure.
 ;;   The inner function is called by Reagent on each re-render,
 ;;   so the reagant atom holding state persists across renders.
@@ -758,8 +765,6 @@
                            (reset! selected-style url))
                :style (when (= @selected-style url) {:font-weight "bold"})}
            name])]])))
-
-(defonce selected-tab (r/atom :barebones))
 
 (def tabs
   (sorted-map
