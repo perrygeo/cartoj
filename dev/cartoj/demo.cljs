@@ -303,7 +303,10 @@
                      "highway_motorway_casing" "highway_motorway_inner"
                      "highway_motorway_subtle" "tunnel_motorway_casing"
                      "tunnel_motorway_inner" "highway_motorway_bridge_casing"
-                     "highway_motorway_bridge_inner" "road_area_pier" "road_pier"]
+                     "highway_motorway_bridge_inner" "road_area_pier" "road_pier"
+                     "highway-name-path" "highway-name-minor" "highway-name-major"
+                     "highway-shield-non-us" "highway-shield-us-interstate"
+                     "road_shield_us"]
         places-layers ["label_other" "label_village" "label_town" "label_city"
                        "label_city_capital" "label_state" "label_country_1"
                        "label_country_2" "label_country_3" "airport"
