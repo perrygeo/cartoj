@@ -152,7 +152,7 @@
    [:h2 "Geocoder"]
    [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                             :map-style default-stylesheet}
-    [geocoder/geocoder-control {:position "top-left"
+    [geocoder/geocoder-control {:position "bottom-left"
                                 :marker true
                                 :on-result (fn [^js evt]
                                              (js/console.log "geocoder result:" (.-result evt)))}]]
@@ -393,7 +393,7 @@
                          :type "circle"
                          :source "cities"
                          :paint {:circle-radius 3
-                                 :circle-color "#fff"
+                                 :circle-color "#ffb"
                                  :circle-stroke-width 1
                                  :circle-stroke-color "#a99"}}]]]
        [:button {:on-click click-handler} "Load cities"
@@ -544,7 +544,7 @@
     (fn []
       [:section
        [:h2 "Dynamic Styling"]
-       [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 12})
+       [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 9})
                                 :map-style default-stylesheet}
         [interop/with-map (fn [m] (reset! map-ref m) [:<>])]
         [ctrl/navigation-control {:position "top-right"}]]
