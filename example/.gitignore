@@ -1,0 +1,8 @@
+node_modules
+package-lock.json
+.shadow-cljs
+.cpcache
+public/js
+target
+.clj-kondo
+.lsp
