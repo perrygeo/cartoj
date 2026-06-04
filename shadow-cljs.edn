@@ -7,20 +7,7 @@
  :dev-http {3000 "public"}
 
  :builds
- {:lib
-  {:target :npm-module
-   :output-dir "dist"
-   :entries [cartoj.core
-             cartoj.geocoder
-             cartoj.overlays
-             cartoj.sources
-             cartoj.controls
-             cartoj.interop
-             cartoj.re-frame
-             cartoj.pmtiles
-             cartoj.draw]}
-
-  :dev
+ {:dev
   {:target :browser
    :output-dir "public/js"
    :asset-path "/js"
