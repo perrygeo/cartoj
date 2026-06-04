@@ -82,17 +82,6 @@
           [:th "Latitude"]
           [:td (if-let [lat (:latitude @last-point)]
                  (.toFixed lat 4) "-")]]]]
-       #_[:table
-          [:tbody
-           [:tr
-            [:th]
-            [:th "Longitude"]
-            [:th "Latitude"]]
-           (when @last-point
-             [:tr
-              [:td "Last point"]
-              [:td (.toFixed (:longitude @last-point) 4)]
-              [:td (.toFixed (:latitude @last-point) 4)]])]]
        [:p "Get the coordinates of your cursor as the mouse moves."]])))
 
 (defn on-click-event-section []
@@ -182,6 +171,11 @@
      [cartoj/interactive-map
       (merge state
              {:map-style default-stylesheet
+              :initial-view-state {:longitude -121.99,
+                                   :latitude 37.52,
+                                   :zoom 7,
+                                   :bearing 41,
+                                   :pitch 28}
               :on-move (cartoj-rf/on-move)})
       [ctrl/navigation-control {:position "top-right"}]]
      [:p [:pre.edn [:code (with-out-str (pprint state))]]]

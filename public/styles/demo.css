@@ -15,6 +15,10 @@ h2 {
   margin-bottom: 0.5rem;
 }
 
+button {
+  margin: 0.05rem;
+}
+
 pre.clojure {
   padding: 0.1rem;
   margin-bottom: 0.5rem;
