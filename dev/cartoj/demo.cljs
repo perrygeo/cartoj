@@ -766,6 +766,127 @@
                :style (when (= @selected-style url) {:font-weight "bold"})}
            name])]])))
 
+(defn render-counter-section
+  "Probe whether props->js identity churn causes downstream work in
+  react-map-gl. The CLJS props are held structurally stable across
+  parent re-renders, but props->js still produces fresh JS object
+  identity for the nested values (:initial-view-state, :style,
+  :interactive-layer-ids) on every render. The counters below show
+  how react-map-gl reacts.
+
+  Deviates from the form-2 convention used elsewhere because we need
+  unmount cleanup for the auto-tick interval; r/with-let's (finally)
+  handles that."
+  []
+  (r/with-let
+    [;; Plain atoms — incremented without driving Reagent reactivity.
+     ;; Values are sampled at render time via deref.
+     parent-renders     (atom 0)
+     on-load-count      (atom 0)
+     on-style-data-count (atom 0)
+     on-render-count    (atom 0)
+     on-idle-count      (atom 0)
+
+     ;; r/atoms — drive re-renders.
+     tick       (r/atom 0)
+     auto-tick? (r/atom false)
+
+     ;; Plain atom for cleanup — not displayed.
+     timer-id (atom nil)
+
+     ;; Stable callback identities so the prop value of each :on-*
+     ;; is the same JS fn across renders.
+     handle-load       (fn [_] (swap! on-load-count inc))
+     handle-style-data (fn [_] (swap! on-style-data-count inc))
+     handle-render     (fn [_] (swap! on-render-count inc))
+     handle-idle       (fn [_] (swap! on-idle-count inc))
+
+     ;; CLJS prop map — structurally identical across renders. The
+     ;; nested maps + vector here are what props->js will repeatedly
+     ;; convert into fresh JS objects/arrays.
+     stable-props {:initial-view-state    (merge sf-coords {:zoom 9})
+                   :map-style             default-stylesheet
+                   :interactive-layer-ids ["probe-a" "probe-b"]
+                   :style                 {:width "100%" :height "100%"}
+                   :on-load               handle-load
+                   :on-style-data         handle-style-data
+                   :on-render             handle-render
+                   :on-idle               handle-idle}
+
+     start-auto!
+     (fn []
+       (when-not @timer-id
+         (reset! auto-tick? true)
+         (reset! timer-id (js/setInterval #(swap! tick inc) 200))))
+
+     stop-auto!
+     (fn []
+       (when-let [id @timer-id]
+         (js/clearInterval id)
+         (reset! timer-id nil))
+       (reset! auto-tick? false))
+
+     reset-counts!
+     (fn []
+       (reset! parent-renders 0)
+       (reset! on-load-count 0)
+       (reset! on-style-data-count 0)
+       (reset! on-render-count 0)
+       (reset! on-idle-count 0)
+       (reset! tick 0))]
+
+    ;; Body — runs on every render. Deref tick to subscribe to it,
+    ;; then bump the (plain) parent-renders counter.
+    @tick
+    (swap! parent-renders inc)
+    [:section
+     [:h2 "Render Counter (props identity probe)"]
+     [:p "Forces parent re-renders while the CLJS-side props passed to "
+      [:code "cartoj/interactive-map"]
+      " stay structurally identical. JS-side, "
+      [:code "props->js"]
+      " still produces fresh JS object identity for the nested values ("
+      [:code ":initial-view-state"] ", "
+      [:code ":style"] ", "
+      [:code ":interactive-layer-ids"]
+      ") on every render. If react-map-gl is reacting to that identity churn, "
+      "the event counters below should keep climbing as you tick."]
+
+     [cartoj/interactive-map stable-props
+      [ctrl/navigation-control {:position "top-right"}]]
+
+     [:div.control-panel {:style {:margin "12px 0"}}
+      [:button {:on-click #(swap! tick inc)}
+       "Force re-render"]
+      [:button {:on-click #(if @auto-tick? (stop-auto!) (start-auto!))}
+       (if @auto-tick? "Stop auto-tick" "Auto-tick every 200 ms")]
+      [:button {:on-click reset-counts!}
+       "Reset counts"]]
+
+     [:table
+      [:tbody
+       [:tr [:th "Tick"]                    [:td @tick]]
+       [:tr [:th "Parent renders"]          [:td @parent-renders]]
+       [:tr [:th [:code "on-load"]]         [:td @on-load-count]]
+       [:tr [:th [:code "on-style-data"]]   [:td @on-style-data-count]]
+       [:tr [:th [:code "on-render"]]       [:td @on-render-count]]
+       [:tr [:th [:code "on-idle"]]         [:td @on-idle-count]]]]
+
+     [:p {:style {:color "#666" :font-size "0.9em"}}
+      "Interpretation: "
+      [:code "on-load"] " should fire once. "
+      [:code "on-style-data"]
+      " is the load-bearing counter — if it keeps climbing on every forced "
+      "re-render, identity churn is triggering style reloads. If it plateaus "
+      "after the initial fetch, react-map-gl is comparing more carefully than "
+      "reference identity. "
+      [:code "on-render"]
+      " fires per painted frame; growth while the map is visually static "
+      "signals wasted re-paint work. "
+      [:code "on-idle"] " ticks when motion stops."]]
+
+    (finally (stop-auto!))))
+
 (def tabs
   (sorted-map
    ;; TODO 
@@ -810,6 +931,8 @@
                       :section overlay-section}
    :reframe          {:title "Reframe integration"
                       :section reframe-section}
+   :render-counter   {:title "Render Counter"
+                      :section render-counter-section}
    :side-by-side     {:title "Side by Side"
                       :section side-by-side-section}
    :sources          {:title "Point Features"
@@ -837,6 +960,7 @@
              :on-move-event [code-block (code-string on-move-event-section)]
              :controls    [code-block (code-string controls-section)]
              :reframe     [code-block (code-string on-move-event-section)]
+             :render-counter [code-block (code-string render-counter-section)]
              :overlays    [code-block (code-string overlay-section)]
              :geocoder    [code-block (code-string geocoder-section)]
              :flyto       [code-block (code-string flyto-section)]

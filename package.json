@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "shadow-cljs watch dev",
     "test": "shadow-cljs compile test && node target/test/test.js",
+    "bench": "shadow-cljs release bench && node target/bench/bench.js",
     "build": "shadow-cljs release lib"
   },
   "dependencies": {

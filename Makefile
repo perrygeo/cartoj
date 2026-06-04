@@ -1,23 +1,23 @@
 _default:
-	@echo "make test|compile|dev|build|install|clean|doc"
+	@echo "make test|dev|install|clean|doc"
 	@echo "Clojars: make jar|install-local|deploy"
 
-.PHONY: _default test compile dev build install clean doc jar install-local deploy
+.PHONY: _default test compile-test dev build install clean doc jar install-jar deploy
 
 SHADOW := npx shadow-cljs
 
-compile:
+compile-test:
 	$(SHADOW) compile test
 
-test: compile
+test: compile-test
 	node target/test/test.js
 
 dev:
 	$(SHADOW) watch dev
 
-# Shadow-cljs :npm-module bundle (optional, for JS/TS consumers; separate from Clojars).
-build:
-	$(SHADOW) release lib
+# release build of the shadow-cljs :test target
+release-test:
+	$(SHADOW) release test
 
 install:
 	npm install
@@ -35,7 +35,7 @@ jar:
 	clj -T:build jar
 
 # Install the JAR into ~/.m2 so another local project can consume it via :mvn/version.
-install-local:
+install-jar:
 	clj -T:build install
 
 # Push the JAR to Clojars. Requires CLOJARS_USERNAME and CLOJARS_PASSWORD
