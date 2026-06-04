@@ -1,0 +1,13 @@
+{
+  "extension": [".cljs"],
+  "include": ["**/cartoj/*.cljs"],
+  "exclude": [
+    "**/*_test.cljs",
+    "**/cartoj/demo.cljs"
+  ],
+  "excludeAfterRemap": true,
+  "reporter": ["html", "text-summary"],
+  "reports-dir": "coverage",
+  "temp-directory": ".c8tmp",
+  "all": false
+}

@@ -31,3 +31,5 @@ planet-latest.osm.gol
 node_modules
 dist
 public/js
+coverage
+.c8tmp

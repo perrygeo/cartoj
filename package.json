@@ -6,19 +6,21 @@
   "scripts": {
     "dev": "shadow-cljs watch dev",
     "test": "shadow-cljs compile test && node target/test/test.js",
+    "test:coverage": "shadow-cljs compile test && node scripts/fix-source-maps.js && c8 node target/test/test.js",
     "bench": "shadow-cljs release bench && node target/bench/bench.js",
     "build": "shadow-cljs release lib"
   },
   "dependencies": {
-    "maplibre-gl": "^5.0.0",
+    "@mapbox/mapbox-gl-draw": "^1.4.3",
     "@maplibre/maplibre-gl-geocoder": "^1.7.0",
+    "maplibre-gl": "^5.0.0",
     "pmtiles": "^4.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "react-map-gl": "^8.0.0",
-    "@mapbox/mapbox-gl-draw": "^1.4.3"
+    "react-map-gl": "^8.0.0"
   },
   "devDependencies": {
+    "c8": "^11.0.0",
     "shadow-cljs": "^2.28.0"
   }
 }
