@@ -376,9 +376,8 @@
                 :buildings ["building" "building-top"]
                 :land      ["park" "landuse_residential" "landcover_wood"
                             "landcover_glacier" "landcover_ice_shelf"
-                            "landcover_grass" "landcover_sand"
-                            "landcover_farmland" "landcover_rock"
-                            "landcover_wetland"]}
+                            "landcover_sand" "landcover_farmland"
+                            "landcover_rock" "landcover_wetland"]}
         labels   [[:roads "Roads"]
                   [:water "Water"]
                   [:buildings "Buildings"]
