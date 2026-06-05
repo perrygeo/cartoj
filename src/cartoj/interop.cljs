@@ -46,9 +46,6 @@
   Must be called inside a functional component."
   useControl)
 
-;; ---------------------------------------------------------------------------
-;; with-map — functional component shim for useMap
-
 (defn with-map
   "Render children with access to the maplibre Map instance.
 
@@ -64,8 +61,15 @@
            (r/as-element
             (render-fn (when map-ref (.getMap map-ref))))))])
 
-;; ---------------------------------------------------------------------------
-;; MapProvider
+(defn reset-map-ref!
+  "Reset the given map-ref atom, so that it's subscribers
+  have access to imperative maplibre commands, like flyTo, etc.
+  used from ordinary Reagent components without hooks friction.
+
+  Wraps the most commonly-used `with-map` pattern for convenience."
+  [map-ref]
+  (with-map
+    (fn [m] (reset! map-ref m) [:<>])))
 
 (defn map-provider
   "Reagent component wrapping react-map-gl MapProvider.
@@ -78,3 +82,4 @@
   (let [[prop-map children] (props/props-and-children args)
         js-props (props/props->js (or prop-map {}))]
     (into [:r> MapProvider js-props] children)))
+

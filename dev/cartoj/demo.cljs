@@ -47,30 +47,151 @@
         [:pre.clojure [:code {:class "language-clojure"
                               :ref   save-ref!} src]])})))
 
+;; ## Utilities
+
+(defn atom-watcher
+  "Used with `add-watch` to inspect an atom over time and print any changes.
+
+    (add-watch app-state :app-state-watcher atom-watcher)
+  "
+  [key _the-atom old-state new-state]
+  (println "Atom" key "changed"
+           "\nOld state:" old-state
+           "\nNew state:" new-state))
+
 ;; ## App State
 
 (defonce selected-tab (r/atom :barebones))
 
+(comment  ;; inspect app state from the REPL!
+  (@selected-tab)
+  (reset! selected-tab :drawing)
+  (add-watch selected-tab :map-ref-watcher atom-watcher)
+  (remove-watch selected-tab :map-ref-watcher))
+
 ;; ## Demo sections
 ;;
-;; In general we want to use Reagent's Form-2 component pattern,
-;;   to keep the relevant state contained in one example component.
-;;   The outer function runs once on mount, returning a closure.
-;;   The inner function is called by Reagent on each re-render,
-;;   so the reagant atom holding state persists across renders.
+;; In general the demos use Reagent's Form-2 component pattern
+;;  to keep the relevant state contained in one example component.
+;;  The outer function runs once on mount, returning a closure.
+;;  The inner function is called by Reagent on each re-render,
+;;  so the reagant atom holding state persists across renders.
+
+(defn barebones-section []
+  [:section
+   [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
+                            :map-style  "https://demotiles.maplibre.org/style.json"}]
+   [:p "Minimum viable interactive map."]])
+
+(defn basemaps-section []
+  (let [basemap-styles [{:name "[OpenFreeMap] Liberty (Street)" :url "https://tiles.openfreemap.org/styles/liberty"}
+                        {:name "[OpenFreeMap] Bright"           :url "https://tiles.openfreemap.org/styles/bright"}
+                        {:name "[OpenFreeMap] Positron (Light)" :url "https://tiles.openfreemap.org/styles/positron"}
+                        {:name "[OpenFreeMap] Dark Matter"      :url "https://tiles.openfreemap.org/styles/dark"}
+                        {:name "[Protomaps] Light"              :url "https://pmtiles.perrygeo.com/styles/light.json"}
+                        {:name "[Protomaps] Dark"               :url "https://pmtiles.perrygeo.com/styles/dark.json"}
+                        {:name "[Protomaps] Data Viz White"     :url "https://pmtiles.perrygeo.com/styles/white.json"}
+                        {:name "[Protomaps] Data Viz Grey"      :url "https://pmtiles.perrygeo.com/styles/grey.json"}
+                        {:name "[Protomaps] Data Viz Black"     :url "https://pmtiles.perrygeo.com/styles/black.json"}]
+        selected-style (r/atom (:url (first basemap-styles)))]
+    (fn []
+      [:section
+       [:h2 "Basemaps"]
+       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
+                                :map-style @selected-style}
+        [ctrl/navigation-control {:position "top-right"}]]
+       [:p "Demonstrate switching between different public basemaps"]
+       [:div.control-panel
+        (for [{:keys [name url]} basemap-styles]
+          ^{:key name}
+          [:a {:href "#"
+               :on-click (fn [e]
+                           (.preventDefault e)
+                           (reset! selected-style url))
+               :style (when (= @selected-style url) {:font-weight "bold"})}
+           name])]])))
+
+(defn expand-cluster [map-ref e source-name]
+  (when-let [^js m @map-ref]
+    (let [^js features (.-features e)
+          ^js feature  (when features (aget features 0))]
+      (when feature
+        (let [^js props   (.-properties feature)
+              cluster-id (.-cluster_id props)]
+          (when cluster-id
+            (let [^js source (.getSource m source-name)]
+              (-> (.getClusterExpansionZoom source cluster-id)
+                  (.then (fn [zoom]
+                           (.easeTo m (clj->js
+                                       {:center   (.-coordinates (.-geometry feature))
+                                        :zoom     zoom
+                                        :duration 500}))))))))))))
+
+(defn cluster-section []
+  (let [earthquake-data "/data/earthquakes.geojson"
+        map-ref (atom nil)
+        on-click (fn [evt] (expand-cluster map-ref evt "earthquakes"))
+        cluster-layer {:id "clusters"
+                       :type "circle"
+                       :source "earthquakes"
+                       :filter ["has" "point_count"]
+                       :paint {:circle-color ["step" ["get" "point_count"]
+                                              "#51bbd6" 100
+                                              "#f1f075" 750
+                                              "#f28cb1"]
+                               :circle-radius ["step" ["get" "point_count"]
+                                               20 100
+                                               30 750
+                                               40]}}
+        cluster-count-layer {:id "cluster-count"
+                             :type "symbol"
+                             :source "earthquakes"
+                             :filter ["has" "point_count"]
+                             :layout {:text-field "{point_count_abbreviated}"
+                                      :text-size 12}}
+        unclustered-point-layer {:id "unclustered-point"
+                                 :type "circle"
+                                 :source "earthquakes"
+                                 :filter ["!" ["has" "point_count"]]
+                                 :paint {:circle-color "#11b4da"
+                                         :circle-radius 4
+                                         :circle-stroke-width 1
+                                         :circle-stroke-color "#fff"}}]
+    (fn []
+      [:section
+       [:h2 "Cluster"]
+       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
+                                :map-style default-stylesheet
+                                :interactive-layer-ids ["clusters"]
+                                :on-click on-click}
+        [interop/reset-map-ref! map-ref]
+        [sources/source {:id "earthquakes"
+                         :type "geojson"
+                         :data earthquake-data
+                         :cluster true
+                         :cluster-max-zoom 14
+                         :cluster-radius 50}
+         [sources/layer cluster-layer]
+         [sources/layer cluster-count-layer]
+         [sources/layer unclustered-point-layer]]]
+       [:p "Group nearby points into clusters at low zoom levels. Click a cluster to expand it."]])))
+
+(defn coords-from-evt
+  "Given a Maplibre click event, extract the latlng coordinates"
+  [el]
+  (let [^js pos (.-lngLat el)]
+    {:longitude (.-lng pos) :latitude (.-lat pos)}))
 
 (defn on-mouse-move-event-section []
   (let [last-point (r/atom nil)
-        pos-handler (fn [^js el]
-                      (let [^js pos (.-lngLat el)]
-                        (reset! last-point {:longitude (.-lng pos)
-                                            :latitude (.-lat pos)})))]
+        position-handler (fn [^js e]
+                           (reset! last-point (coords-from-evt e)))]
     (fn []
       [:section
        [:h2 "On mouse move event"]
        [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                                 :map-style default-stylesheet
-                                :on-mouse-move pos-handler}
+                                :on-mouse-move position-handler}
         [ctrl/navigation-control {:position "top-right"}]]
        [:table {:style {:width "250px"}}
         [:tbody
@@ -86,10 +207,8 @@
 
 (defn on-click-event-section []
   (let [last-point (r/atom nil)
-        click-handler (fn [^js el]
-                        (let [^js pos (.-lngLat el)]
-                          (reset! last-point {:longitude (.-lng pos)
-                                              :latitude (.-lat pos)})))]
+        click-handler (fn [^js e]
+                        (reset! last-point (coords-from-evt e)))]
     (fn []
       [:section
        [:h2 "On click event"]
@@ -138,10 +257,10 @@
        [:h2 "Fly To Location"]
        [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                                 :map-style default-stylesheet}
-        [interop/with-map (fn [m] (reset! map-ref m) [:<>])]
+        [interop/reset-map-ref! map-ref]
         [ctrl/navigation-control {:position "top-right"}]]
 
-       [:p "Smooth camera transitions between locations:"
+       [:div "Smooth camera transitions between locations:"
         [:ul
          (for [city cities]
            ^{:key (:name city)}
@@ -352,7 +471,7 @@
        [:h2 "Layer Switcher"]
        [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 11})
                                 :map-style default-stylesheet}
-        [interop/with-map (fn [m] (reset! map-ref m) [:<>])]
+        [interop/reset-map-ref! map-ref]
         [ctrl/navigation-control {:position "top-right"}]]
        [:p "Toggle the visibility of layers built into the OpenFreeMap default stylesheet:"]
        [:div.control-panel
@@ -483,64 +602,6 @@
        [:p "Density heatmap of earthquakes rendered from a GeoJSON HTTP resource."]
        [:p "TODO source"]])))
 
-(defn cluster-section []
-  (let [earthquake-data "/data/earthquakes.geojson"
-        map-ref (atom nil)
-        on-click (fn [^js e]
-                   (when-let [^js m @map-ref]
-                     (let [^js features (.-features e)
-                           ^js feature  (when features (aget features 0))]
-                       (when feature
-                         (let [^js props   (.-properties feature)
-                               cluster-id (.-cluster_id props)]
-                           (when cluster-id
-                             (let [^js source (.getSource m "earthquakes")]
-                               (-> (.getClusterExpansionZoom source cluster-id)
-                                   (.then (fn [zoom]
-                                            (.easeTo m (clj->js
-                                                        {:center   (.-coordinates (.-geometry feature))
-                                                         :zoom     zoom
-                                                         :duration 500}))))))))))))
-        cluster-layer {:id "clusters"
-                       :type "circle"
-                       :source "earthquakes"
-                       :filter ["has" "point_count"]
-                       :paint {:circle-color ["step" ["get" "point_count"] "#51bbd6" 100 "#f1f075" 750 "#f28cb1"]
-                               :circle-radius ["step" ["get" "point_count"] 20 100 30 750 40]}}
-        cluster-count-layer {:id "cluster-count"
-                             :type "symbol"
-                             :source "earthquakes"
-                             :filter ["has" "point_count"]
-                             :layout {:text-field "{point_count_abbreviated}"
-                                      :text-size 12}}
-        unclustered-point-layer {:id "unclustered-point"
-                                 :type "circle"
-                                 :source "earthquakes"
-                                 :filter ["!" ["has" "point_count"]]
-                                 :paint {:circle-color "#11b4da"
-                                         :circle-radius 4
-                                         :circle-stroke-width 1
-                                         :circle-stroke-color "#fff"}}]
-    (fn []
-      [:section
-       [:h2 "Cluster"]
-       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                                :map-style default-stylesheet
-                                :interactive-layer-ids ["clusters"]
-                                :on-click on-click}
-        [interop/with-map
-         (fn [m] (reset! map-ref m) [:<>])]
-        [sources/source {:id "earthquakes"
-                         :type "geojson"
-                         :data earthquake-data
-                         :cluster true
-                         :cluster-max-zoom 14
-                         :cluster-radius 50}
-         [sources/layer cluster-layer]
-         [sources/layer cluster-count-layer]
-         [sources/layer unclustered-point-layer]]]
-       [:p "Group nearby points into clusters at low zoom levels. Click a cluster to expand it."]])))
-
 (defn limit-interactivity-section []
   (let [sfbay-bounds [[-123.4 37.2] [-121.3 38.5]]]
     (fn []
@@ -579,7 +640,7 @@
        [:h2 "Dynamic Styling"]
        [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 9})
                                 :map-style default-stylesheet}
-        [interop/with-map (fn [m] (reset! map-ref m) [:<>])]
+        [interop/reset-map-ref! map-ref]
         [ctrl/navigation-control {:position "top-right"}]]
        [:p "Change map layer styles programmatically:"]
        [:div {:style {:margin-top "12px"}}
@@ -725,40 +786,6 @@
           [:p {:style {:color "#888"}} "No geometry yet — draw on the map."]
           [:pre (with-out-str (cljs.pprint/pprint @geometry))])]
        [:br]])))
-
-(defn barebones-section []
-  [:section
-   [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                            :map-style  "https://demotiles.maplibre.org/style.json"}]
-   [:p "Minimum viable interactive map."]])
-
-(defn basemaps-section []
-  (let [basemap-styles [{:name "[OpenFreeMap] Liberty (Street)" :url "https://tiles.openfreemap.org/styles/liberty"}
-                        {:name "[OpenFreeMap] Bright"           :url "https://tiles.openfreemap.org/styles/bright"}
-                        {:name "[OpenFreeMap] Positron (Light)" :url "https://tiles.openfreemap.org/styles/positron"}
-                        {:name "[OpenFreeMap] Dark Matter"      :url "https://tiles.openfreemap.org/styles/dark"}
-                        {:name "[Protomaps] Light"              :url "https://pmtiles.perrygeo.com/styles/light.json"}
-                        {:name "[Protomaps] Dark"               :url "https://pmtiles.perrygeo.com/styles/dark.json"}
-                        {:name "[Protomaps] Data Viz White"     :url "https://pmtiles.perrygeo.com/styles/white.json"}
-                        {:name "[Protomaps] Data Viz Grey"      :url "https://pmtiles.perrygeo.com/styles/grey.json"}
-                        {:name "[Protomaps] Data Viz Black"     :url "https://pmtiles.perrygeo.com/styles/black.json"}]
-        selected-style (r/atom (:url (first basemap-styles)))]
-    (fn []
-      [:section
-       [:h2 "Basemaps"]
-       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                                :map-style @selected-style}
-        [ctrl/navigation-control {:position "top-right"}]]
-       [:p "Demonstrate switching between different public basemaps"]
-       [:div.control-panel
-        (for [{:keys [name url]} basemap-styles]
-          ^{:key name}
-          [:a {:href "#"
-               :on-click (fn [e]
-                           (.preventDefault e)
-                           (reset! selected-style url))
-               :style (when (= @selected-style url) {:font-weight "bold"})}
-           name])]])))
 
 (defn render-counter-section
   "Probe whether props->js identity churn causes downstream work in
@@ -979,7 +1006,7 @@
 (defn app []
   [:div#app
    [:header.demo-header
-    [:h1 "Cartoj Demo"]]
+    [:h1 "🌐 Cartoj Demo"]]
    [:div.demo-layout
     [sidebar]
     [main-panel]]])
@@ -995,6 +1022,11 @@
   (.render ^js @root (r/as-element [app])))
 
 (comment
+  (js/console.log
+   (clj->js {:beforeId true}) ; #js {:beforeId true} -> Object { beforeId: true } 
+   (clj->js {:before-id true}) ; {:before-id true} -> Object { "before-id": true }
+   (clj->js {"beforeId" true}) ; {"beforeId" true} -> Object { beforeId: true }
+   )
   (re-render)
   (init)
-  (namespace ::x))
+  (js/alert (str "Hello from the REPL, in namespace " (namespace ::x))))
