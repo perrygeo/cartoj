@@ -2,20 +2,19 @@ _default:
 	@echo "make test|dev|install|clean|doc"
 	@echo "Clojars: make jar|install-local|deploy"
 
-.PHONY: _default test compile-test dev build install clean doc jar install-jar deploy
+.PHONY: _default test dev build install clean doc jar install-jar deploy
 
 SHADOW := npx shadow-cljs
 
-compile-test:
-	$(SHADOW) compile test
+test:
+	npm run test
 
-test: compile-test
-	node target/test/test.js
+test-coverage:
+	npm run test:coverage
 
 dev:
 	$(SHADOW) watch dev
 
-# release build of the shadow-cljs :test target
 release-test:
 	$(SHADOW) release test
 
