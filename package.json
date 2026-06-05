@@ -7,8 +7,7 @@
     "dev": "shadow-cljs watch dev",
     "test": "shadow-cljs compile test && node target/test/test.js",
     "test:coverage": "shadow-cljs compile test && node scripts/fix-source-maps.js && c8 node target/test/test.js",
-    "bench": "shadow-cljs release bench && node target/bench/bench.js",
-    "build": "shadow-cljs release lib"
+    "bench": "shadow-cljs release bench && node target/bench/bench.js"
   },
   "dependencies": {
     "@mapbox/mapbox-gl-draw": "^1.4.3",
