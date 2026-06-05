@@ -14,11 +14,7 @@
             [cartoj.re-frame :as cartoj-rf])
   (:require-macros [cartoj.demo-macros :refer [code-string]]))
 
-(def default-stylesheet
-  "https://tiles.openfreemap.org/styles/positron")
-
-(def sf-coords
-  {:longitude -122.4194 :latitude 37.7749 :zoom 7})
+;; ## Utilities
 
 (defn code-block-render
   "Pure render function: returns hiccup for a syntax-highlighted code block.
@@ -47,19 +43,31 @@
         [:pre.clojure [:code {:class "language-clojure"
                               :ref   save-ref!} src]])})))
 
-;; ## Utilities
+(defn table-repr
+  "Print a reasonable HTML table representation of a clojure map"
+  [m]
+  [:table
+   [:tbody
+    (for [[k v] m]
+      [:tr
+       [:th (str k)]
+       [:td (if (coll? v)
+              (with-out-str (pprint v))
+              (str v))]])]])
 
 (defn atom-watcher
   "Used with `add-watch` to inspect an atom over time and print any changes.
-
-    (add-watch app-state :app-state-watcher atom-watcher)
-  "
+    (add-watch app-state :app-state-watcher atom-watcher)"
   [key _the-atom old-state new-state]
   (println "Atom" key "changed"
            "\nOld state:" old-state
            "\nNew state:" new-state))
 
 ;; ## App State
+
+(def default-stylesheet "https://tiles.openfreemap.org/styles/positron")
+
+(def sf-coords {:longitude -122.4194 :latitude 37.7749 :zoom 7})
 
 (defonce selected-tab (r/atom :barebones))
 
@@ -69,13 +77,14 @@
   (add-watch selected-tab :map-ref-watcher atom-watcher)
   (remove-watch selected-tab :map-ref-watcher))
 
-;; ## Demo sections
+;; ## Example sections
 ;;
-;; In general the demos use Reagent's Form-2 component pattern
-;;  to keep the relevant state contained in one example component.
+;; In general these examples use the Reagent Form-2 component pattern
+;;  to keep the relevant state contained in one component source.
 ;;  The outer function runs once on mount, returning a closure.
 ;;  The inner function is called by Reagent on each re-render,
 ;;  so the reagant atom holding state persists across renders.
+;; This is good for examples but real apps may want to hold state in other ways.
 
 (defn barebones-section []
   [:section
@@ -283,34 +292,36 @@
    [:p "Search for places using Nominatim geocoding."]])
 
 (defn on-move-event-section []
-  ;; TODO remove reframe and use reagant form-2
-  (let [state (or @(rf/subscribe [::cartoj-rf/view-state]) sf-coords)]
-    [:section
-     [:h2 "On Map Move (changing viewport)"]
-     [cartoj/interactive-map
-      (merge state
-             {:map-style default-stylesheet
-              :initial-view-state {:longitude -121.99,
-                                   :latitude 37.52,
-                                   :zoom 7,
-                                   :bearing 41,
-                                   :pitch 28}
-              :on-move (cartoj-rf/on-move)})
-      [ctrl/navigation-control {:position "top-right"}]]
-     [:p [:pre.edn [:code (with-out-str (pprint state))]]]
-     [:p "By registering an on-move handler, and subscribing to view-state,
-          Clojurescript has full access to the map state."]]))
+  (let [view-state (r/atom {:longitude -121.99,
+                            :latitude 37.52,
+                            :zoom 7,
+                            :bearing 41,
+                            :pitch 28})
+        on-move-handler (fn [^js evt]
+                          (reset! view-state (cartoj/view-state->clj (.-viewState evt))))]
+    (fn []
+      (let [state @view-state]
+        [:section
+         [:h2 "On Map Move (changing viewport)"]
+         [cartoj/interactive-map
+          (merge state
+                 {:map-style default-stylesheet
+                  :on-move on-move-handler})
+          [ctrl/navigation-control {:position "top-right"}]]
+         [table-repr state]
+         [:p "By registering an on-move handler, and subscribing to view-state,
+              Clojurescript has full access to the map state."]]))))
 
 (defn reframe-section []
   (let [state (or @(rf/subscribe [::cartoj-rf/view-state]) sf-coords)]
     [:section
-     [:h2 "Controlled map"]
+     [:h2 "Reframe-controlled map"]
      [cartoj/interactive-map
       (merge state
              {:map-style default-stylesheet
               :on-move (cartoj-rf/on-move)})
       [ctrl/navigation-control {:position "top-right"}]]
-     [:code [:pre (with-out-str (pprint state))]]
+     [table-repr state]
      [:p "By registering an on-move handler, and subscribing to view-state,
           Clojurescript has full access to the map state."]]))
 
@@ -343,7 +354,7 @@
                                     :properties {:name "Los Angeles"}}]}]
     (fn []
       [:section
-       [:h2  "Point Features"]
+       [:h2  "GeoJSON Features"]
        [cartoj/interactive-map {:initial-view-state {:longitude -98 :latitude 38 :zoom 3}
                                 :map-style default-stylesheet}
         [sources/source {:id "cities"
@@ -598,8 +609,7 @@
                                                  1 "rgb(178,24,43)"]
                                  :heatmap-radius 17
                                  :heatmap-opacity 0.7}}]]]
-       [:p "Density heatmap of earthquakes rendered from a GeoJSON HTTP resource."]
-       [:p "TODO source"]])))
+       [:p "Density heatmap of earthquakes, rendered from a GeoJSON file over HTTP."]])))
 
 (defn limit-interactivity-section []
   (let [sfbay-bounds [[-123.4 37.2] [-121.3 38.5]]]
@@ -705,23 +715,27 @@
     "create a larger & darker red circle for cities with higher populations."]])
 
 (defn side-by-side-section []
-  (let [state (or @(rf/subscribe [::cartoj-rf/view-state]) sf-coords)]
-    [:section
-     [:h2 "Sync two map viewports."]
-     [cartoj/interactive-map
-      (merge state
-             {:map-style default-stylesheet
-              :class-name "half-interactive-map"
-              :on-move (cartoj-rf/on-move)})
-      [ctrl/navigation-control {:position "top-right"}]]
-     [cartoj/interactive-map
-      (merge state
-             {:map-style  "https://tiles.openfreemap.org/styles/liberty"
-              :class-name "half-interactive-map"
-              :on-move (cartoj-rf/on-move)})
-      [ctrl/navigation-control {:position "top-right"}]]
-     [:p "By registering an on-move handler, and subscribing to view-state,
-          Clojurescript has full access to the map state and can reset the other map."]]))
+  (let [view-state (r/atom sf-coords)]
+    (fn []
+      (let [state @view-state]
+        [:section
+         [:h2 "Sync two map viewports."]
+         [cartoj/interactive-map
+          (merge state
+                 {:map-style default-stylesheet
+                  :class-name "half-interactive-map"
+                  :on-move (fn [^js evt]
+                             (reset! view-state (cartoj/view-state->clj (.-viewState evt))))})
+          [ctrl/navigation-control {:position "top-right"}]]
+         [cartoj/interactive-map
+          (merge state
+                 {:map-style  "https://tiles.openfreemap.org/styles/liberty"
+                  :class-name "half-interactive-map"
+                  :on-move (fn [^js evt]
+                             (reset! view-state (cartoj/view-state->clj (.-viewState evt))))})
+          [ctrl/navigation-control {:position "top-right"}]]
+         [:p "By registering an on-move handler, and subscribing to view-state,
+              Clojurescript has full access to the map state and can sync the viewport."]]))))
 
 (defn terrain-section []
   (let [terrain-source {:id "terrain-dem"
@@ -908,8 +922,6 @@
 
 (def tabs
   (sorted-map
-   ;; TODO 
-   ;; Time series / typeahead filter features in map view
    :barebones         {:title "Barebones"
                        :section barebones-section}
    :basemaps         {:title "Basemaps"
@@ -954,7 +966,7 @@
                       :section render-counter-section}
    :side-by-side     {:title "Side by Side"
                       :section side-by-side-section}
-   :sources          {:title "Point Features"
+   :sources          {:title "GeoJSON Features"
                       :section point-features-section}
    :style-by-numeric {:title "Style by numeric"
                       :section style-by-numeric-section}
@@ -978,8 +990,8 @@
              :on-mouse-move-event [code-block (code-string on-mouse-move-event-section)]
              :on-move-event [code-block (code-string on-move-event-section)]
              :controls    [code-block (code-string controls-section)]
-             :reframe     [code-block (code-string on-move-event-section)]
              :render-counter [code-block (code-string render-counter-section)]
+             :reframe [code-block (code-string reframe-section)]
              :overlays    [code-block (code-string overlay-section)]
              :geocoder    [code-block (code-string geocoder-section)]
              :flyto       [code-block (code-string flyto-section)]
