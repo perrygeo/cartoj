@@ -67,6 +67,20 @@
       (is (= "marker"  (aget layout "icon-image")))
       (is (= "{name}"  (aget layout "text-field"))))))
 
+(deftest layer-preserves-kebab-and-camelcase-top-level-keys
+  (testing ":source-layer, :min-zoom, :max-zoom kept as kebab-case; :beforeId kept as camelCase"
+    (let [[_ _comp ^js js-props] (sources/layer {:id "l"
+                                                 :type "line"
+                                                 :source "s"
+                                                 :source-layer "landcover"
+                                                 :min-zoom 5
+                                                 :max-zoom 18
+                                                 :beforeId "waterway"})]
+      (is (= "landcover"  (aget js-props "source-layer")))
+      (is (= 5            (aget js-props "min-zoom")))
+      (is (= 18           (aget js-props "max-zoom")))
+      (is (= "waterway"   (aget js-props "beforeId"))))))
+
 (deftest layer-accepts-no-props
   (testing "layer can be called with no args"
     (is (vector? (sources/layer)))))

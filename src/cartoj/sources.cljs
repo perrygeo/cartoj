@@ -34,9 +34,12 @@
   Optional props include :paint, :layout, :filter, :min-zoom, :max-zoom,
   :source-layer, :before-id.
 
-  :paint and :layout are CLJS maps and are converted to JS objects with
-  camelCase keys (e.g. :circle-radius → circleRadius)."
+  All layer props go directly to MapLibre's map.addLayer() which expects
+  MapLibre style spec keys (kebab-case). clj->js is used instead of
+  cartoj.props/props->js because clj->js preserves keyword names as-is:
+  :source-layer → \"source-layer\", :circle-radius → \"circle-radius\",
+  :beforeId → \"beforeId\"."
   [& args]
   (let [[prop-map children] (props/props-and-children args)
-        js-props (props/props->js (or prop-map {}))]
+        js-props (clj->js (or prop-map {}))]
     (into [:r> Layer js-props] children)))
