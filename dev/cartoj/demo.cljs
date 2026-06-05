@@ -330,8 +330,7 @@
     (fn []
       [:section
        [:h2  "Marker + Popup"]
-       [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 7})
-                                :map-style default-stylesheet}
+       [cartoj/interactive-map {:map-style default-stylesheet}
         [overlay/marker
          {:longitude (:longitude sf-coords)
           :latitude  (:latitude sf-coords)
@@ -342,7 +341,11 @@
             :latitude   (:latitude sf-coords)
             :on-close   #(reset! show-popup? false)
             :close-button true}
-           [:h2.popup "San Francisco"]])]])))
+           [:div.popup
+            [:h2 "San Francisco"]
+            [:img {:src "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/GoldenGateBridge-001.jpg/1280px-GoldenGateBridge-001.jpg"
+                   :alt "Golden Gate Bridge, San Francisco"
+                   :style {:width "100%" :border-radius "4px"}}]]])]])))
 
 (defn point-features-section []
   (let [sample-geojson {:type "FeatureCollection"
@@ -785,15 +788,15 @@
                                 (js->clj (.-geometry f) :keywordize-keys true)))))]
     (fn []
       [:section
-       [:h2 "Drawing Features"]
+       [:h2 "Drawing Geometries"]
        [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                                 :map-style default-stylesheet}
         [draw/draw-control {:position "top-left"
                             :on-render on-render}]]
        [:div.geometry-panel
-        [:p "Use the draw tools to create a polygon or line.
-            The geometry updates live as you click each vertex; double-click
-            to complete. The GeoJSON-like EDN representation is updated live:"]
+        [:p "Use the draw tools to create a point, linestring, or polygon.
+             The EDN representation of the geometry updates live as you click each vertex;
+             double-click to complete."]
         (if (nil? @geometry)
           [:p {:style {:color "#888"}} "No geometry yet — draw on the map."]
           [:pre (with-out-str (cljs.pprint/pprint @geometry))])]
@@ -936,7 +939,7 @@
                       :section cluster-section}
    :controls         {:title "Controls"
                       :section controls-section}
-   :drawing          {:title "Drawing Features"
+   :drawing          {:title "Drawing Geometries"
                       :section drawing-section}
    :dynamic-style    {:title "Dynamic Styling"
                       :section dynamic-styling-section}
