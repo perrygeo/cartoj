@@ -621,8 +621,7 @@
                     ["park"                 "fill-color"  "rgb(230, 233, 229)"]
                     ["highway_major_inner"  "line-color"  "#fff"]
                     ["highway_major_casing" "line-color"  "rgb(213, 213, 213)"]
-                    ["landuse_residential"  "fill-color"  "rgb(234, 234, 230)"]
-                    ["wood"                 "fill-color"  "rgb(220, 224, 220)"]]
+                    ["landuse_residential"  "fill-color"  "rgb(234, 234, 230)"]]
         defaults (into {} (map (fn [[l p c]] [l {:paint p :default c}]) layer-defs))
         colors (r/atom (into {} (map (fn [[l _ c]] [l c]) layer-defs)))
         random-color (fn []
