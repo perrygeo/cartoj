@@ -1,17 +1,17 @@
 (ns cartoj.demo
   "Interactive demo / development harness for cartoj."
-  (:require [reagent.core :as r]
-            [reagent.dom.client :as rdom-client]
-            [re-frame.core :as rf]
+  (:require [cartoj.controls :as ctrl]
             [cartoj.core :as cartoj]
-            [cartoj.overlays :as overlay]
-            [cartoj.sources :as sources]
-            [cartoj.controls :as ctrl]
-            [cartoj.geocoder :as geocoder]
             [cartoj.draw :as draw]
+            [cartoj.geocoder :as geocoder]
             [cartoj.interop :as interop]
+            [cartoj.overlays :as overlay]
+            [cartoj.re-frame :as cartoj-rf]
+            [cartoj.sources :as sources]
             [cljs.pprint :refer [pprint]]
-            [cartoj.re-frame :as cartoj-rf])
+            [re-frame.core :as rf]
+            [reagent.core :as r]
+            [reagent.dom.client :as rdom-client])
   (:require-macros [cartoj.demo-macros :refer [code-string]]))
 
 ;; ## Utilities
@@ -1017,7 +1017,7 @@
              [:code "placeholder"])]]))
 
 (defn app []
-  [:div#app
+  [:div
    [:header.demo-header
     [:h1 "🌐 Cartoj Demo"]]
    [:div.demo-layout
@@ -1035,6 +1035,7 @@
   (.render ^js @root (r/as-element [app])))
 
 (comment
+  ;; key conversion behavior
   (js/console.log
    (clj->js {:beforeId true}) ; #js {:beforeId true} -> Object { beforeId: true } 
    (clj->js {:before-id true}) ; {:before-id true} -> Object { "before-id": true }
@@ -1042,4 +1043,5 @@
    )
   (re-render)
   (init)
+  (-> js/document (.getElementById "app") (.-innerHTML))
   (js/alert (str "Hello from the REPL, in namespace " (namespace ::x))))
