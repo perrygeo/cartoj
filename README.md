@@ -1,22 +1,17 @@
 # Cartoj
 
-[![Test](https://github.com/perrygeo/cartoj/actions/workflows/test.yml/badge.svg)](https://github.com/perrygeo/cartoj/actions/workflows/test.yml)
-
-A ClojureScript / Reagent wrapper around [react-map-gl](https://visgl.github.io/react-map-gl/) (MapLibre edition).
+[![Tests](https://github.com/perrygeo/cartoj/actions/workflows/test.yml/badge.svg)](https://github.com/perrygeo/cartoj/actions/workflows/test.yml)
+A ClojureScript / Reagent component for interactive map components.
+Built on [react-map-gl](https://visgl.github.io/react-map-gl/) (MapLibre edition).
 
 ## Status
 
-**Alpha** — API is stable, not yet published to Clojars.
+**Alpha** — API is not stable, not yet published to Clojars.
 
-## Requirements
-
-- React 19 + Reagent 2.0
-- MapLibre GL JS ≥ 5.0 (open-source, no token required)
-- shadow-cljs (or any cljs build that understands `deps.cljs`)
 
 ## Installation
 
-> Not yet on Clojars. The deps coordinate below is the target shape — see [Publishing](#publishing) for the release pipeline.
+> Not yet on Clojars. The deps coordinate below is the intended shape
 
 Add to `deps.edn`:
 
@@ -30,21 +25,32 @@ Or in `shadow-cljs.edn`:
 :dependencies [[io.github.perrygeo/cartoj "0.1.0"]]
 ```
 
-## npm dependencies
+## Usage
 
 
-The demo at `dev/cartoj/demo.cljs` exercises every namespace. To run it locally you need the full set of npm dependencies.
-
-```bash
-npm install  # pinned in package.json
+```clojure
+(defn on-click-example []
+  (let [last-point    (r/atom nil)
+        click-handler (fn [^js e]
+                        (reset! last-point (coords-from-evt e)))]
+    (fn []
+      [:section
+       [:h2 "On click event"]
+       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
+                                :map-style default-stylesheet
+                                :on-click click-handler}
+        [ctrl/navigation-control {:position "top-right"}]]
+       [:table {:style {:width "250px"}}
+        [:tbody
+         [:tr
+          [:th "Longitude"]
+          [:td (if-let [lng (:longitude @last-point)]
+                 (.toFixed lng 4) "-")]]
+         [:tr
+          [:th "Latitude"]
+          [:td (if-let [lat (:latitude @last-point)]
+                 (.toFixed lat 4) "-")]]]]
+       [:p "Get the coordinates of a map click."]])))
 ```
 
-Alternatively:
-
-```bash
-npm install react react-dom \
-  react-map-gl maplibre-gl \
-  @maplibre/maplibre-gl-geocoder \
-  @mapbox/mapbox-gl-draw \
-  pmtiles
-```
+<img src="on-click-example.jpg">
