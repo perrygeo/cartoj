@@ -1,7 +1,7 @@
 _default:
-	@echo "make test|dev|deps|clean|docs|jar|install-local|deploy"
+	@echo "make test|dev|deps|clean|docs|compile|jar|install-local|deploy"
 
-.PHONY: _default test dev build install clean docs jar install-jar deploy
+.PHONY: _default test dev build install clean docs jar install-jar deploy compile
 
 SHADOW := npx shadow-cljs
 
@@ -26,8 +26,7 @@ clean:
 compile:
 	$(SHADOW) release dev
 
-# TODO compile
-docs:
+docs: compile
 	clj -X:codox
 	cp -r public/js/main.js docs/js/main.js
 	cp -r public/css/* docs/css/
