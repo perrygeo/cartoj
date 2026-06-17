@@ -18,6 +18,6 @@
                    :exec-args     {:source-paths ["src"]
                                    :name         "Cartoj"
                                    :version      "0.1.0"
-                                   :description  "Clojurescript reagant components for interative maps backed by MapLibre and react-map-gl."
+                                   :description  "Clojurescript reagant components for interactive maps backed by MapLibre and react-map-gl."
                                    :output-path  "docs"
                                    :language     :clojurescript}}}}

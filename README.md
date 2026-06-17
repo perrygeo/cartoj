@@ -1,13 +1,17 @@
 # Cartoj
 
 [![Tests](https://github.com/perrygeo/cartoj/actions/workflows/test.yml/badge.svg)](https://github.com/perrygeo/cartoj/actions/workflows/test.yml)
-
-A ClojureScript library for web cartography.
-
-Interactive maps as [Reagant](https://reagent-project.github.io/) components, built on [react-map-gl](https://visgl.github.io/react-map-gl/) and [MapLibre](https://maplibre.org/projects/gl-js/).
+Clojurescript [reagant](https://reagent-project.github.io/) components for interactive maps,
+built on [react-map-gl](https://visgl.github.io/react-map-gl/) and [MapLibre](https://maplibre.org/projects/gl-js/).
 ## Status
 
 **Alpha** — API is not stable, not yet published to Clojars.
+
+
+## Documentation
+
+
+[https://perrygeo.github.io/cartoj/](https://perrygeo.github.io/cartoj/)
 
 
 ## Installation
@@ -62,3 +66,6 @@ Or in `shadow-cljs.edn`:
 ```
 
 <img src="on-click-example.jpg">
+
+
+See the [live demo](https://perrygeo.github.io/cartoj/03-examples.html) for more examples.
