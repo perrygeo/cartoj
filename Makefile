@@ -1,8 +1,7 @@
 _default:
-	@echo "make test|dev|install|clean|doc"
-	@echo "Clojars: make jar|install-local|deploy"
+	@echo "make test|dev|deps|clean|docs|jar|install-local|deploy"
 
-.PHONY: _default test dev build install clean doc jar install-jar deploy
+.PHONY: _default test dev build install clean docs jar install-jar deploy
 
 SHADOW := npx shadow-cljs
 
@@ -18,14 +17,24 @@ dev:
 release-test:
 	$(SHADOW) release test
 
-install:
+deps:
 	npm install
 
 clean:
 	rm -rf target dist public/js .shadow-cljs
 
-doc:
-	clj -X:codox && open target/doc/index.html
+compile:
+	$(SHADOW) release dev
+
+# TODO compile
+docs:
+	clj -X:codox
+	cp -r public/js/main.js docs/js/main.js
+	cp -r public/css/* docs/css/
+	cp -r public/data docs/data
+	cp -r public/index.html docs/03-examples.html
+	cd docs && python -m http.server
+
 
 # --- Clojars distribution ---------------------------------------------------
 

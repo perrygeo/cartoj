@@ -1,4 +1,4 @@
-{:source-paths ["src" "test" "dev"]
+{:source-paths ["src" "test" "dev" "resources"]
 
  :dependencies
  [[reagent "2.0.0"]

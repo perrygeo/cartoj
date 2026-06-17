@@ -159,3 +159,42 @@ Controlled:   Reagent atom / re-frame sub → view-state->js → :view-state pro
 | **Lib** | `npm run build` | 9 public ns as npm-module entries | `dist/` directory |
 
 The `:npm-module` build exports: `cartoj.core`, `cartoj.overlays`, `cartoj.sources`, `cartoj.controls`, `cartoj.interop`, `cartoj.re-frame`, `cartoj.draw`, `cartoj.geocoder`, `cartoj.pmtiles`.
+
+## Namespaces
+
+- `cartoj.core` — `interactive-map`, `view-state->js`, `view-state->clj`
+- `cartoj.overlays` — `marker`, `popup`
+- `cartoj.sources` — `source`, `layer`
+- `cartoj.controls` — `navigation-control`, `geolocate-control`, `fullscreen-control`, `scale-control`, `attribution-control`, `terrain-control`
+- `cartoj.geocoder` — `geocoder-control` _(needs `@maplibre/maplibre-gl-geocoder`)
+- `cartoj.draw` — `draw-control` _(needs `@mapbox/mapbox-gl-draw`)_
+- `cartoj.pmtiles` — PMTiles protocol registration _(needs `pmtiles`)_
+- `cartoj.interop` — `with-map`, `map-provider`, `use-map`, `use-control`
+- `cartoj.re-frame` — `::set-view-state`, `::view-state`, `on-move` _(optional, requires re-frame)_
+
+## Prop conventions
+
+- All props use **kebab-case keywords** (`:initial-view-state`, `:on-click`, `:map-style`)
+- Cartoj converts them to camelCase JS before passing to react-map-gl
+- Callback props receive the **native JS event object** (no automatic conversion)
+- Nested data props (`:initial-view-state`, `:style`, `:paint`, `:layout`, `:filter`) are converted recursively with key camelCasing
+
+## Publishing
+
+Cartoj is distributed as a **source-only JAR on Clojars**. Consumers' own ClojureScript compiler (typically shadow-cljs) compiles the `.cljs` files alongside their app code, so Google Closure `:advanced` optimization works across the whole bundle.
+
+The release pipeline is `build.clj` (using `tools.build` and `slipset/deps-deploy`):
+
+```bash
+make jar             # build target/cartoj-<version>.jar
+make install-local   # install to ~/.m2 for testing from another local project
+make deploy          # push to Clojars (needs CLOJARS_USERNAME / CLOJARS_PASSWORD)
+```
+
+Bump `version` in `build.clj` for each release and tag the commit `v<version>`.
+
+The `make build` target (shadow-cljs `:lib` → `dist/`) produces an **npm-module** bundle for JS/TS consumers. That is a separate distribution channel from Clojars and is currently unpublished.
+
+## License
+
+MIT

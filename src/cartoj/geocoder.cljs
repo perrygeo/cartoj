@@ -18,10 +18,12 @@
   All other props are passed to the MaplibreGeocoder constructor
   (kebab-case keys converted to camelCase)."
   (:require ["react" :as react]
-            ["@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.mjs" :default MaplibreGeocoder]
+            ["@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.mjs" :as geocoder-module]
             [cartoj.interop :as interop]
             [cartoj.overlays :as overlays]
             [cartoj.props :as props]))
+
+(def ^:private MaplibreGeocoder (.-default geocoder-module))
 
 ;; ---------------------------------------------------------------------------
 ;; Nominatim forward geocoding API

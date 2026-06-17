@@ -6,10 +6,12 @@
                          :on-create (fn [^js evt] ...)
                          :on-update (fn [^js evt] ...)
                          :on-delete (fn [^js evt] ...)}]"
-  (:require ["@mapbox/mapbox-gl-draw" :default MapboxDraw]
+  (:require ["@mapbox/mapbox-gl-draw" :as draw-module]
             [cartoj.interop :as interop]
             [cartoj.props :as props]
             [clojure.string :as str]))
+
+(def ^:private MapboxDraw (.-default draw-module))
 
 ;; ---------------------------------------------------------------------------
 ;; MapLibre 3+ compatibility shim

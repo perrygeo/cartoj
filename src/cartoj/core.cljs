@@ -3,19 +3,14 @@
 
   Wraps the react-map-gl/maplibre Map component as a Reagent component.
 
-  Usage (uncontrolled):
-    [core/map {:initial-view-state {:longitude -122.4 :latitude 37.8 :zoom 14}
-               :map-style \"https://demotiles.maplibre.org/style.json\"
-               :style {:width \"100%\" :height \"400px\"}}]
+  Usage:
+    [cartoj/interactive-map
+        {:initial-view-state {:longitude 0 :latitude 16 :zoom 1}
+         :map-style \"https://tiles.openfreemap.org/styles/bright\"}]"
 
-  Usage (controlled):
-    [core/map (merge @view-state
-                     {:on-move #(reset! view-state (core/view-state->clj (.-viewState %)))
-                      :map-style \"...\"})
-     child1 child2]"
   (:require ["react-map-gl/maplibre" :refer [Map]]
-            [cartoj.props :as props]
-            [cartoj.pmtiles]))
+            [cartoj.pmtiles]
+            [cartoj.props :as props]))
 
 (defn interactive-map
   "Reagent component wrapping react-map-gl Map.
@@ -30,10 +25,10 @@
   container element."
   [& args]
   (let [[prop-map children] (props/props-and-children args)
-        prop-map  (or prop-map {})
-        class-name (or (:class-name prop-map) "cartoj-interactive-map")
-        js-props  (props/props->js (dissoc prop-map :class-name))
-        map-el    (into [:r> Map js-props] children)]
+        prop-map            (or prop-map {})
+        class-name          (or (:class-name prop-map) "cartoj-interactive-map")
+        js-props            (props/props->js (dissoc prop-map :class-name))
+        map-el              (into [:r> Map js-props] children)]
     (if class-name
       [:div {:class class-name} map-el]
       map-el)))
