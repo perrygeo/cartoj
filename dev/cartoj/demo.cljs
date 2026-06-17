@@ -185,16 +185,10 @@
          [sources/layer unclustered-point-layer]]]
        [:p "Group nearby points into clusters at low zoom levels. Click a cluster to expand it."]])))
 
-(defn coords-from-evt
-  "Given a Maplibre click event, extract the latlng coordinates"
-  [el]
-  (let [^js pos (.-lngLat el)]
-    {:longitude (.-lng pos) :latitude (.-lat pos)}))
-
 (defn on-mouse-move-event-section []
   (let [last-point       (r/atom nil)
         position-handler (fn [^js e]
-                           (reset! last-point (coords-from-evt e)))]
+                           (reset! last-point (interop/coords-from-evt e)))]
     (fn []
       [:section
        [:h2 "On mouse move event"]
@@ -217,7 +211,7 @@
 (defn on-click-event-section []
   (let [last-point    (r/atom nil)
         click-handler (fn [^js e]
-                        (reset! last-point (coords-from-evt e)))]
+                        (reset! last-point (interop/coords-from-evt e)))]
     (fn []
       [:section
        [:h2 "On click event"]
@@ -673,7 +667,7 @@
           [:th "Color"]]]
         [:tbody
          (doall
-          (for [[layer {:keys [paint default]}] defaults]
+          (for [[layer {:keys [paint _default]}] defaults]
             ^{:key layer}
             [:tr
              [:td {:style {:font-family "monospace" :font-size "13px"}} layer]
@@ -1046,3 +1040,27 @@
   (init)
   (-> js/document (.getElementById "app") (.-innerHTML))
   (js/alert (str "Hello from the REPL, in namespace " (namespace ::x))))
+
+(defn on-click-example
+  "A Form-2 style component, tracks map click coordinates in a reagant atom."
+  []
+  (let [last-point    (r/atom nil)
+        click-handler (fn [^js e]
+                        (reset! last-point (interop/coords-from-evt e)))]
+    (fn []
+      [:section
+       [:h2 "On click event"]
+       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
+                                :map-style          "https://tiles.openfreemap.org/styles/positron"
+                                :on-click           click-handler}
+        [ctrl/navigation-control {:position "top-right"}]]
+       [:table {:style {:width "250px"}}
+        [:tbody
+         [:tr
+          [:th "Longitude"]
+          [:td (if-let [lng (:longitude @last-point)]
+                 (.toFixed lng 4) "-")]]
+         [:tr
+          [:th "Latitude"]
+          [:td (if-let [lat (:latitude @last-point)]
+                 (.toFixed lat 4) "-")]]]]])))

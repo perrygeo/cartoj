@@ -1,5 +1,5 @@
 (ns cartoj.interop
-  "Interop helpers for advanced react-map-gl usage.
+  "Helpers for react-map-gl usage requiring JS interop.
 
   Provides:
     - `with-map`    — render a child with access to the MapRef (useMap shim)
@@ -25,8 +25,8 @@
               ;; current is the MapRef for the nearest ancestor Map
               [:div (str \"zoom: \" (.. current -transform -zoom))]))]]"
   (:require ["react-map-gl/maplibre" :refer [useMap useControl MapProvider]]
-            [reagent.core :as r]
-            [cartoj.props :as props]))
+            [cartoj.props :as props]
+            [reagent.core :as r]))
 
 ;; ---------------------------------------------------------------------------
 ;; Raw hook exports
@@ -80,6 +80,11 @@
   Optional props: none required; each child Map should have an :id prop."
   [& args]
   (let [[prop-map children] (props/props-and-children args)
-        js-props (props/props->js (or prop-map {}))]
+        js-props            (props/props->js (or prop-map {}))]
     (into [:r> MapProvider js-props] children)))
 
+(defn coords-from-evt
+  "Given a Maplibre click event, extract the coordinates"
+  [e]
+  (let [^js pos (.-lngLat e)]
+    {:longitude (.-lng pos) :latitude (.-lat pos)}))
