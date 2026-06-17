@@ -1019,7 +1019,8 @@
 (defn app []
   [:div
    [:header.demo-header
-    [:h1 "Cartoj Demo"]]
+    [:a {:style {:float "right"} :href "https://perrygeo.github.io/cartoj"} "Home"]
+    [:h1 "Cartoj Examples"]]
    [:div.demo-layout
     [sidebar]
     [main-panel]]])
