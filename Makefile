@@ -11,6 +11,9 @@ test:
 test-coverage:
 	npm run test:coverage
 
+test-starter:
+	cd starter && $(SHADOW) release app && cd public && python -m http.server 8006
+
 dev:
 	$(SHADOW) watch dev
 
@@ -32,7 +35,7 @@ docs: compile
 	cp -r public/css/* docs/css/
 	cp -r public/data docs/data
 	cp -r public/index.html docs/03-examples.html
-	cd docs && python -m http.server
+	cd docs && python -m http.server 8005
 
 
 # --- Clojars distribution ---------------------------------------------------
