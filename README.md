@@ -1,34 +1,37 @@
 # Cartoj
 
 [![Tests](https://github.com/perrygeo/cartoj/actions/workflows/test.yml/badge.svg)](https://github.com/perrygeo/cartoj/actions/workflows/test.yml)
-Clojurescript [reagant](https://reagent-project.github.io/) components for interactive maps,
+
+ClojureScript library providing [Reagant](https://reagent-project.github.io/) components for interactive maps,
 built on [react-map-gl](https://visgl.github.io/react-map-gl/) and [MapLibre](https://maplibre.org/projects/gl-js/).
 ## Status
 
-**Alpha** — API is not stable, not yet published to Clojars.
+**Alpha** — API is not yet stable
 
 
 ## Documentation
 
 
-[https://perrygeo.github.io/cartoj/](https://perrygeo.github.io/cartoj/)
+* [https://perrygeo.github.io/cartoj/](https://perrygeo.github.io/cartoj/)
 
 
 ## Installation
 
-> Not yet on Clojars. The deps coordinate below is the intended shape
+
+See [https://clojars.org/io.github.perrygeo/cartoj](https://clojars.org/io.github.perrygeo/cartoj) for current version.
 
 Add to `deps.edn`:
 
 ```clojure
-{:deps {io.github.perrygeo/cartoj {:mvn/version "0.1.0"}}}
+{:deps {io.github.perrygeo/cartoj {:mvn/version "..."}}}
 ```
 
-Or in `shadow-cljs.edn`:
+Or to `shadow-cljs.edn`:
 
 ```clojure
-:dependencies [[io.github.perrygeo/cartoj "0.1.0"]]
+:dependencies [[io.github.perrygeo/cartoj "..."]]
 ```
+
 
 ## Usage
 
