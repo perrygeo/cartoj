@@ -30,7 +30,11 @@
       (str (first parts)
            (str/join (map str/capitalize (rest parts)))))))
 
-(def kebab->camel (memoize inner-kebab->camel))
+(def kebab->camel
+  "Memoized version of inner-kebab->camel.
+  Convert a kebab-case keyword or string to a camelCase string.
+  Examples: :foo-bar => \"fooBar\", \"onMove\" => \"onMove\""
+  (memoize inner-kebab->camel))
 
 ;; Props that contain nested CLJS data maps that must be converted to JS
 ;; Keys whose nested map values use camelCase keys (JS/CSS conventions).

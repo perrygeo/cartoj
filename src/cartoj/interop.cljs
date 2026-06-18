@@ -62,11 +62,11 @@
             (render-fn (when map-ref (.getMap map-ref))))))])
 
 (defn reset-map-ref!
-  "Reset the given map-ref atom, so that it's subscribers
-  have access to imperative maplibre commands, like flyTo, etc.
-  used from ordinary Reagent components without hooks friction.
+  "Reset the given map-ref atom so that its subscribers have access to
+  imperative maplibre commands like flyTo.
 
-  Wraps the most commonly-used `with-map` pattern for convenience."
+  This is a convenience wrapper around with-map — see its docstring for
+  details on the hooks-friction workaround."
   [map-ref]
   (with-map
     (fn [m] (reset! map-ref m) [:<>])))
@@ -84,7 +84,8 @@
     (into [:r> MapProvider js-props] children)))
 
 (defn coords-from-evt
-  "Given a Maplibre click event, extract the coordinates"
+  "Given a Maplibre click event, extract the coordinates.
+  Returns {:longitude number :latitude number}."
   [e]
   (let [^js pos (.-lngLat e)]
     {:longitude (.-lng pos) :latitude (.-lat pos)}))
