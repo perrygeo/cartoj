@@ -9,7 +9,6 @@
          :map-style \"https://tiles.openfreemap.org/styles/bright\"}]"
 
   (:require ["react-map-gl/maplibre" :refer [Map]]
-            [cartoj.pmtiles]
             [cartoj.props :as props]))
 
 (defn interactive-map

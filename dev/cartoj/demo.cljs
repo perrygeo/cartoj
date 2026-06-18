@@ -6,6 +6,7 @@
             [cartoj.geocoder :as geocoder]
             [cartoj.interop :as interop]
             [cartoj.overlays :as overlay]
+            [cartoj.pmtiles]
             [cartoj.re-frame :as cartoj-rf]
             [cartoj.sources :as sources]
             [cljs.pprint :refer [pprint]]
