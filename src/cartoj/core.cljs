@@ -70,16 +70,6 @@
       [:div {:class class-name} map-el]
       map-el)))
 
-; (ns cartoj.sources
-;   "Source and Layer components for cartoj.
-
-;   Usage:
-;     [sources/source {:id \"my-source\" :type \"geojson\" :data \"/data.geojson\"}
-;      [sources/layer {:id \"my-layer\" :type \"circle\" :source \"my-source\"
-;                      :paint {:circle-radius 6 :circle-color \"#e00\"}}]]"
-;   (:require ["react-map-gl/maplibre" :refer [Source Layer]]
-;             [cartoj.props :as props]))
-
 (defn source
   "Reagent component wrapping react-map-gl Source.
 
