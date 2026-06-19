@@ -16,12 +16,50 @@
 
   Props are a CLJS map with kebab-case keyword keys; they are converted to a
   camelCase JS object before being passed to the underlying React component.
-  Callback values (e.g. :on-click, :on-move) are passed through unchanged.
-  Children are appended after the props in the hiccup vector.
+  Callback values are passed through unchanged. Children are appended after
+  the props in the hiccup vector.
 
   :class-name is intercepted and applied to a wrapper div, because the
   underlying react-map-gl Map only forwards :id, :ref, and :style to its
-  container element."
+  container element. When omitted, defaults to \"cartoj-interactive-map\".
+
+  Key props:
+    :id                   — string, unique map instance id
+    :map-style            — string URL or MapLibre style spec (required)
+    :initial-view-state   — {:longitude :latitude :zoom :bearing :pitch :padding}
+    :view-state           — controlled view state (use with re-frame :sync?)
+    :style                — map of CSS properties for the container
+    :projection           — \"mercator\" | \"globe\" | projection spec
+    :style-diffing        — boolean, enable diffing on style change (default true)
+    :interactive-layer-ids — vector of layer ids for pointer queries
+    :cursor               — CSS cursor string
+    :light                — light spec map
+    :terrain              — terrain spec map
+    :sky                  — sky spec map
+    :gl                   — external WebGL context
+    :reuse-maps           — boolean, reuse existing Map instances
+
+  Mouse events:
+    :on-click :on-dbl-click :on-mouse-down :on-mouse-up
+    :on-mouse-over :on-mouse-move :on-mouse-enter :on-mouse-leave
+    :on-mouse-out :on-context-menu
+
+  Touch events:
+    :on-touch-start :on-touch-end :on-touch-move :on-touch-cancel
+
+  View-state events:
+    :on-move-start :on-move :on-move-end
+    :on-drag-start :on-drag :on-drag-end
+    :on-zoom-start :on-zoom :on-zoom-end
+    :on-rotate-start :on-rotate :on-rotate-end
+    :on-pitch-start :on-pitch :on-pitch-end
+
+  Other events:
+    :on-wheel :on-box-zoom-start :on-box-zoom-end :on-box-zoom-cancel
+
+  Lifecycle & data events:
+    :on-load :on-render :on-idle :on-error :on-remove :on-resize
+    :on-data :on-style-data :on-source-data"
   [& args]
   (let [[prop-map children] (props/props-and-children args)
         prop-map            (or prop-map {})

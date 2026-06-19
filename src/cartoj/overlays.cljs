@@ -18,11 +18,30 @@
   "Reagent component wrapping react-map-gl Marker.
 
   Required props:
-    :longitude  – number
-    :latitude   – number
+    :longitude  — number
+    :latitude   — number
 
-  Optional props include :offset, :anchor, :draggable, :rotation,
-  :on-drag-start, :on-drag, :on-drag-end, :on-click, :style, :class-name.
+  Optional props:
+    :offset             — [x y] pixel offset
+    :anchor             — position anchor (see MapLibre docs)
+    :color              — string, default marker color (default \"#3FB1CE\")
+    :scale              — number, scale factor (default 1)
+    :draggable          — boolean
+    :click-tolerance    — number, max pixel shift for click detection
+    :rotation           — number, rotation in degrees
+    :rotation-alignment — \"map\" | \"viewport\" | \"auto\"
+    :pitch-alignment    — \"map\" | \"viewport\" | \"auto\"
+    :opacity            — string or number, CSS opacity
+    :popup              — PopupInstance, attach a popup to the marker
+    :element            — HTMLElement, custom DOM element
+    :style              — map of CSS properties
+    :class-name         — string, CSS class
+
+  Callback props:
+    :on-click      — (fn [^js evt])
+    :on-drag-start — (fn [^js evt])
+    :on-drag       — (fn [^js evt])
+    :on-drag-end   — (fn [^js evt])
 
   Children replace the default pin icon."
   [& args]
@@ -37,11 +56,25 @@
   "Reagent component wrapping react-map-gl Popup.
 
   Required props:
-    :longitude  – number
-    :latitude   – number
+    :longitude  — number
+    :latitude   — number
 
-  Optional props include :offset, :anchor, :close-button, :close-on-click,
-  :close-on-move, :focus-after-open, :on-close, :on-open, :style, :class-name.
+  Optional props:
+    :offset                   — [x y] pixel offset
+    :anchor                   — position anchor (see MapLibre docs)
+    :close-button             — boolean (default true)
+    :close-on-click           — boolean (default true)
+    :close-on-move            — boolean (default false)
+    :focus-after-open         — boolean (default true)
+    :max-width                — string, CSS max-width (default \"240px\")
+    :subpixel-positioning     — boolean (default false)
+    :location-occluded-opacity — number or string
+    :style                    — map of CSS properties
+    :class-name               — string, CSS class
+
+  Callback props:
+    :on-open  — (fn [^js evt])
+    :on-close — (fn [^js evt])
 
   Children are rendered inside the popup."
   [& args]
