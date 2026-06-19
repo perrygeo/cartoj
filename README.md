@@ -1,6 +1,7 @@
 # Cartoj
 
 [![Tests](https://github.com/perrygeo/cartoj/actions/workflows/test.yml/badge.svg)](https://github.com/perrygeo/cartoj/actions/workflows/test.yml)
+[![Clojars](https://img.shields.io/clojars/v/io.github.perrygeo/cartoj.svg)](https://clojars.org/io.github.perrygeo/cartoj)
 
 ClojureScript library providing [Reagant](https://reagent-project.github.io/) components for interactive maps,
 built on [react-map-gl](https://visgl.github.io/react-map-gl/) and [MapLibre](https://maplibre.org/projects/gl-js/).

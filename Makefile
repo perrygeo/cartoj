@@ -1,7 +1,7 @@
 _default:
-	@echo "make test|dev|deps|clean|docs|compile|jar|install-local|deploy"
+	@echo "make test|dev|deps|clean|docs|compile|jar|install-local|release"
 
-.PHONY: _default test dev build install clean docs jar install-jar deploy compile
+.PHONY: _default test dev build install clean docs jar install-jar release compile
 
 SHADOW := npx shadow-cljs
 
@@ -50,5 +50,5 @@ install-jar:
 
 # Push the JAR to Clojars. Requires CLOJARS_USERNAME and CLOJARS_PASSWORD
 # (use a deploy token, not your account password).
-deploy:
+release:
 	clj -T:build deploy
