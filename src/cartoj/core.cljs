@@ -1,14 +1,14 @@
 (ns cartoj.core
   "Map component and view-state helpers for cartoj.
 
-  Wraps the react-map-gl/maplibre Map component as a Reagent component.
+  Wraps the react-map-gl/maplibre Map, Source, and Layer as a Reagent component.
 
   Usage:
     [cartoj/interactive-map
         {:initial-view-state {:longitude 0 :latitude 16 :zoom 1}
          :map-style \"https://tiles.openfreemap.org/styles/bright\"}]"
 
-  (:require ["react-map-gl/maplibre" :refer [Map]]
+  (:require ["react-map-gl/maplibre" :refer [Map Source Layer]]
             [cartoj.props :as props]))
 
 (defn interactive-map
@@ -70,27 +70,48 @@
       [:div {:class class-name} map-el]
       map-el)))
 
-(def ^:private view-state-keys
-  [:longitude :latitude :zoom :bearing :pitch :padding])
+; (ns cartoj.sources
+;   "Source and Layer components for cartoj.
 
-(defn view-state->js
-  "Convert a CLJS view-state map to a plain JS object.
-  Converts keyword keys to camelCase strings."
-  [vs]
-  (props/props->js vs))
+;   Usage:
+;     [sources/source {:id \"my-source\" :type \"geojson\" :data \"/data.geojson\"}
+;      [sources/layer {:id \"my-layer\" :type \"circle\" :source \"my-source\"
+;                      :paint {:circle-radius 6 :circle-color \"#e00\"}}]]"
+;   (:require ["react-map-gl/maplibre" :refer [Source Layer]]
+;             [cartoj.props :as props]))
 
-(defn view-state->clj
-  "Convert a JS viewState object (from a react-map-gl onMove event) to a
-  CLJS map with keyword keys.
+(defn source
+  "Reagent component wrapping react-map-gl Source.
 
-  Only the standard view-state keys are extracted:
-  :longitude :latitude :zoom :bearing :pitch :padding"
-  [js-vs]
-  (reduce (fn [acc k]
-            (let [js-key (props/kebab->camel k)
-                  v      (aget js-vs js-key)]
-              (if (some? v)
-                (assoc acc k v)
-                acc)))
-          {}
-          view-state-keys))
+  Required props:
+    :id    – unique string identifier
+    :type  – one of \"geojson\", \"vector\", \"raster\", \"raster-dem\",
+              \"image\", \"video\"
+
+  Additional props depend on type (e.g. :data for geojson, :tiles for vector).
+  Children should be Layer components."
+  [& args]
+  (let [[prop-map children] (props/props-and-children args)
+        js-props            (props/props->js (or prop-map {}))]
+    (into [:r> Source js-props] children)))
+
+(defn layer
+  "Reagent component wrapping react-map-gl Layer.
+
+  Required props:
+    :id      – unique string identifier
+    :type    – maplibre layer type (\"fill\", \"line\", \"circle\", \"symbol\", etc.)
+    :source  – id of the source this layer reads from
+
+  Optional props include :paint, :layout, :filter, :min-zoom, :max-zoom,
+  :source-layer, :before-id.
+
+  All layer props go directly to MapLibre's map.addLayer() which expects
+  MapLibre style spec keys (kebab-case). clj->js is used instead of
+  cartoj.props/props->js because clj->js preserves keyword names as-is:
+  :source-layer → \"source-layer\", :circle-radius → \"circle-radius\",
+  :beforeId → \"beforeId\"."
+  [& args]
+  (let [[prop-map children] (props/props-and-children args)
+        js-props            (clj->js (or prop-map {}))]
+    (into [:r> Layer js-props] children)))

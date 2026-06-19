@@ -89,3 +89,22 @@
   [e]
   (let [^js pos (.-lngLat e)]
     {:longitude (.-lng pos) :latitude (.-lat pos)}))
+
+(def ^:private view-state-keys
+  [:longitude :latitude :zoom :bearing :pitch :padding])
+
+(defn view-state->clj
+  "Convert a JS viewState object (from a react-map-gl onMove event) to a
+  CLJS map with keyword keys.
+
+  Only the standard view-state keys are extracted:
+  :longitude :latitude :zoom :bearing :pitch :padding"
+  [js-vs]
+  (reduce (fn [acc k]
+            (let [js-key (props/kebab->camel k)
+                  v      (aget js-vs js-key)]
+              (if (some? v)
+                (assoc acc k v)
+                acc)))
+          {}
+          view-state-keys))

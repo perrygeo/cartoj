@@ -22,8 +22,8 @@
       [carto/map (merge vs
                         {:on-move  (cartoj-rf/on-move)
                          :map-style \"https://demotiles.maplibre.org/style.json\"})])"
-  (:require [re-frame.core :as rf]
-            [cartoj.core   :as core]))
+  (:require [cartoj.interop :as interop]
+            [re-frame.core :as rf]))
 
 (def ^:private db-key
   ::view-state)
@@ -51,6 +51,6 @@
   ([] (on-move nil))
   ([{:keys [sync?] :or {sync? false}}]
    (fn [^js evt]
-     (let [vs     (core/view-state->clj (.-viewState evt))
+     (let [vs       (interop/view-state->clj (.-viewState evt))
            dispatch (if sync? rf/dispatch-sync rf/dispatch)]
        (dispatch [::set-view-state vs])))))
