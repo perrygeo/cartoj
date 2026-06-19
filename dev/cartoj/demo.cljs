@@ -1,18 +1,18 @@
 (ns cartoj.demo
   "Interactive demo / development harness for cartoj."
-  (:require [cartoj.controls :as ctrl]
-            [cartoj.core :as cartoj]
-            [cartoj.draw :as draw]
-            [cartoj.geocoder :as geocoder]
-            [cartoj.interop :as interop]
-            [cartoj.overlays :as overlay]
-            [cartoj.pmtiles]
-            [cartoj.re-frame :as cartoj-rf]
-            [cartoj.sources :as sources]
-            [cljs.pprint :refer [pprint]]
-            [re-frame.core :as rf]
-            [reagent.core :as r]
-            [reagent.dom.client :as rdom-client])
+  (:require
+   [cartoj.controls :as ctrl]
+   [cartoj.core :as cartoj]
+   [cartoj.draw :as draw]
+   [cartoj.geocoder :as geocoder]
+   [cartoj.interop :as interop]
+   [cartoj.overlays :as overlay]
+   [cartoj.pmtiles]
+   [cartoj.re-frame :as cartoj-rf]
+   [cljs.pprint :refer [pprint]]
+   [re-frame.core :as rf]
+   [reagent.core :as r]
+   [reagent.dom.client :as rdom-client])
   (:require-macros [cartoj.demo-macros :refer [code-string]]))
 
 ;; ## Utilities
@@ -58,7 +58,9 @@
 
 (defn atom-watcher
   "Used with `add-watch` to inspect an atom over time and print any changes.
-    (add-watch app-state :app-state-watcher atom-watcher)"
+
+    (add-watch app-state :app-state-watcher atom-watcher)
+  "
   [key _the-atom old-state new-state]
   (println "Atom" key "changed"
            "\nOld state:" old-state
@@ -175,15 +177,15 @@
                                 :interactive-layer-ids ["clusters"]
                                 :on-click              on-click}
         [interop/reset-map-ref! map-ref]
-        [sources/source {:id               "earthquakes"
-                         :type             "geojson"
-                         :data             earthquake-data
-                         :cluster          true
-                         :cluster-max-zoom 14
-                         :cluster-radius   50}
-         [sources/layer cluster-layer]
-         [sources/layer cluster-count-layer]
-         [sources/layer unclustered-point-layer]]]
+        [cartoj/source {:id               "earthquakes"
+                        :type             "geojson"
+                        :data             earthquake-data
+                        :cluster          true
+                        :cluster-max-zoom 14
+                        :cluster-radius   50}
+         [cartoj/layer cluster-layer]
+         [cartoj/layer cluster-count-layer]
+         [cartoj/layer unclustered-point-layer]]]
        [:p "Group nearby points into clusters at low zoom levels. Click a cluster to expand it."]])))
 
 (defn on-mouse-move-event-section []
@@ -293,7 +295,7 @@
                                  :bearing   41,
                                  :pitch     28})
         on-move-handler (fn [^js evt]
-                          (reset! view-state (cartoj/view-state->clj (.-viewState evt))))]
+                          (reset! view-state (interop/view-state->clj (.-viewState evt))))]
     (fn []
       (let [state @view-state]
         [:section
@@ -355,16 +357,16 @@
        [:h2  "GeoJSON Features"]
        [cartoj/interactive-map {:initial-view-state {:longitude -98 :latitude 38 :zoom 3}
                                 :map-style          default-stylesheet}
-        [sources/source {:id   "cities"
-                         :type "geojson"
-                         :data (clj->js sample-geojson)}
-         [sources/layer {:id     "cities-circles"
-                         :type   "circle"
-                         :source "cities"
-                         :paint  {:circle-radius       8
-                                  :circle-color        "#e00"
-                                  :circle-stroke-width 2
-                                  :circle-stroke-color "#fff"}}]]]
+        [cartoj/source {:id   "cities"
+                        :type "geojson"
+                        :data (clj->js sample-geojson)}
+         [cartoj/layer {:id     "cities-circles"
+                        :type   "circle"
+                        :source "cities"
+                        :paint  {:circle-radius       8
+                                 :circle-color        "#e00"
+                                 :circle-stroke-width 2
+                                 :circle-stroke-color "#fff"}}]]]
 
        [:p "Add point locations programatically.
             The structure of the \"Feature\" and \"FeatureCollection\" is based on the GeoJSON standard."]])))
@@ -429,13 +431,13 @@
                             ["landcover_rock" "rock"]
                             ["landcover_wetland" "wetland"]]]
             ^{:key id}
-            [sources/layer {:id           id
-                            :type         "fill"
-                            :source       "openmaptiles"
-                            :source-layer "landcover"
-                            :filter       ["==" ["get" "class"] class]
-                            :paint        {:fill-color   "rgba(0,0,0,0)"
-                                           :fill-opacity 0}}])]
+            [cartoj/layer {:id           id
+                           :type         "fill"
+                           :source       "openmaptiles"
+                           :source-layer "landcover"
+                           :filter       ["==" ["get" "class"] class]
+                           :paint        {:fill-color   "rgba(0,0,0,0)"
+                                          :fill-opacity 0}}])]
          [:p "Pick which layer categories should be interactive. The cursor
               swaps to a pointer while hovering an interactive feature;
               clicking shows what was hit."]
@@ -503,27 +505,27 @@
    [:h2 "Labeling a GeoJSON HTTP Source"]
    [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                             :map-style          default-stylesheet}
-    [sources/source {:id   "cities"
-                     :type "geojson"
-                     :data "data/ne_110m_populated_places_simple.geojson"}
-     [sources/layer {:id     "cities-circles"
-                     :type   "circle"
-                     :source "cities"
-                     :paint  {:circle-radius       3
-                              :circle-color        "#fff"
-                              :circle-stroke-width 1
-                              :circle-stroke-color "#a99"}}]
-     [sources/layer {:id     "cities-labels"
-                     :type   "symbol"
-                     :source "cities"
-                     :layout {:text-field  ["get" "name"]
-                              :text-size   11
-                              :text-offset [0 0]
-                              :text-anchor "top"}
-                     :paint  {:text-color      "#333"
-                              :text-halo-color "rgba(255,255,235,0.85)"
-                              :text-halo-width 2
-                              :text-halo-blur  1}}]]]
+    [cartoj/source {:id   "cities"
+                    :type "geojson"
+                    :data "data/ne_110m_populated_places_simple.geojson"}
+     [cartoj/layer {:id     "cities-circles"
+                    :type   "circle"
+                    :source "cities"
+                    :paint  {:circle-radius       3
+                             :circle-color        "#fff"
+                             :circle-stroke-width 1
+                             :circle-stroke-color "#a99"}}]
+     [cartoj/layer {:id     "cities-labels"
+                    :type   "symbol"
+                    :source "cities"
+                    :layout {:text-field  ["get" "name"]
+                             :text-size   11
+                             :text-offset [0 0]
+                             :text-anchor "top"}
+                    :paint  {:text-color      "#333"
+                             :text-halo-color "rgba(255,255,235,0.85)"
+                             :text-halo-width 2
+                             :text-halo-blur  1}}]]]
    [:p "Add a layer to label a source by attribute."]])
 
 (defn geojson-manual-http-section []
@@ -546,16 +548,16 @@
        [:h2 "GeoJSON, manual HTTP"]
        [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                                 :map-style          default-stylesheet}
-        [sources/source {:id   "cities"
-                         :type "geojson"
-                         :data @collection}
-         [sources/layer {:id     "cities-circles"
-                         :type   "circle"
-                         :source "cities"
-                         :paint  {:circle-radius       3
-                                  :circle-color        "#ffb"
-                                  :circle-stroke-width 1
-                                  :circle-stroke-color "#a99"}}]]]
+        [cartoj/source {:id   "cities"
+                        :type "geojson"
+                        :data @collection}
+         [cartoj/layer {:id     "cities-circles"
+                        :type   "circle"
+                        :source "cities"
+                        :paint  {:circle-radius       3
+                                 :circle-color        "#ffb"
+                                 :circle-stroke-width 1
+                                 :circle-stroke-color "#a99"}}]]]
        [:button {:on-click click-handler} "Load cities"
         (when @waiting-message [:span {:class "waiting"} (str @waiting-message)])]
        [:button {:on-click reset-handler} "Unload"]
@@ -572,16 +574,16 @@
    [:h2 "GeoJSON HTTP Source"]
    [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                             :map-style          default-stylesheet}
-    [sources/source {:id   "cities"
-                     :type "geojson"
-                     :data "data/ne_110m_populated_places_simple.geojson"}
-     [sources/layer {:id     "cities-circles"
-                     :type   "circle"
-                     :source "cities"
-                     :paint  {:circle-radius       3
-                              :circle-color        "#fff"
-                              :circle-stroke-width 1
-                              :circle-stroke-color "#a99"}}]]]
+    [cartoj/source {:id   "cities"
+                    :type "geojson"
+                    :data "data/ne_110m_populated_places_simple.geojson"}
+     [cartoj/layer {:id     "cities-circles"
+                    :type   "circle"
+                    :source "cities"
+                    :paint  {:circle-radius       3
+                             :circle-color        "#fff"
+                             :circle-stroke-width 1
+                             :circle-stroke-color "#a99"}}]]]
 
    [:p "Loads features from a GeoJSON source using an unauthenticated url."]
    [:p "Maplibre will perform the HTTP request, error handling, and parsing."]])
@@ -593,20 +595,20 @@
        [:h2 "Heatmap"]
        [cartoj/interactive-map {:initial-view-state {:longitude -129.9 :latitude 25 :zoom 0.8}
                                 :map-style          default-stylesheet}
-        [sources/source {:id "earthquakes" :type "geojson" :data points}
-         [sources/layer {:id     "earthquake-heatmap"
-                         :type   "heatmap"
-                         :source "earthquakes"
-                         :paint  {:heatmap-intensity 0.7
-                                  :heatmap-color     ["interpolate" ["linear"] ["heatmap-density"]
-                                                      0 "rgba(33,102,172,0)"
-                                                      0.2 "rgb(103,169,207)"
-                                                      0.4 "rgb(209,229,240)"
-                                                      0.6 "rgb(253,219,199)"
-                                                      0.9 "rgb(239,138,98)"
-                                                      1 "rgb(178,24,43)"]
-                                  :heatmap-radius    17
-                                  :heatmap-opacity   0.7}}]]]
+        [cartoj/source {:id "earthquakes" :type "geojson" :data points}
+         [cartoj/layer {:id     "earthquake-heatmap"
+                        :type   "heatmap"
+                        :source "earthquakes"
+                        :paint  {:heatmap-intensity 0.7
+                                 :heatmap-color     ["interpolate" ["linear"] ["heatmap-density"]
+                                                     0 "rgba(33,102,172,0)"
+                                                     0.2 "rgb(103,169,207)"
+                                                     0.4 "rgb(209,229,240)"
+                                                     0.6 "rgb(253,219,199)"
+                                                     0.9 "rgb(239,138,98)"
+                                                     1 "rgb(178,24,43)"]
+                                 :heatmap-radius    17
+                                 :heatmap-opacity   0.7}}]]]
        [:p "Density heatmap of earthquakes, rendered from a GeoJSON file over HTTP."]])))
 
 (defn limit-interactivity-section []
@@ -689,25 +691,25 @@
    [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
                             :map-style          default-stylesheet}
     [ctrl/navigation-control {:position "top-right"}]
-    [sources/source {:id   "cities"
-                     :type "geojson"
-                     :data "data/ne_110m_populated_places_simple.geojson"}
-     [sources/layer {:id     "cities-circles"
-                     :type   "circle"
-                     :source "cities"
-                     :paint  {:circle-radius       ["step" ["get" "pop_max"] 2
-                                                    250000 3
-                                                    1000000 4
-                                                    2500000 6
-                                                    5000000 8]
-                              :circle-color        ["step" ["get" "pop_max"] "#ffffb2"
-                                                    250000  "#fecc5c"
-                                                    1000000  "#fd8d3c"
-                                                    2500000 "#f03b20"
-                                                    5000000 "#bd0026"]
-                              :circle-opacity      0.8
-                              :circle-stroke-width 1
-                              :circle-stroke-color "#fff"}}]]]
+    [cartoj/source {:id   "cities"
+                    :type "geojson"
+                    :data "data/ne_110m_populated_places_simple.geojson"}
+     [cartoj/layer {:id     "cities-circles"
+                    :type   "circle"
+                    :source "cities"
+                    :paint  {:circle-radius       ["step" ["get" "pop_max"] 2
+                                                   250000 3
+                                                   1000000 4
+                                                   2500000 6
+                                                   5000000 8]
+                             :circle-color        ["step" ["get" "pop_max"] "#ffffb2"
+                                                   250000  "#fecc5c"
+                                                   1000000  "#fd8d3c"
+                                                   2500000 "#f03b20"
+                                                   5000000 "#bd0026"]
+                             :circle-opacity      0.8
+                             :circle-stroke-width 1
+                             :circle-stroke-color "#fff"}}]]]
    [:p
     "Using the " [:code "pop_max"] " property of the cities dataset, "
     "create a larger & darker red circle for cities with higher populations."]])
@@ -723,14 +725,14 @@
                  {:map-style  default-stylesheet
                   :class-name "half-interactive-map"
                   :on-move    (fn [^js evt]
-                                (reset! view-state (cartoj/view-state->clj (.-viewState evt))))})
+                                (reset! view-state (interop/view-state->clj (.-viewState evt))))})
           [ctrl/navigation-control {:position "top-right"}]]
          [cartoj/interactive-map
           (merge state
                  {:map-style  "https://tiles.openfreemap.org/styles/liberty"
                   :class-name "half-interactive-map"
                   :on-move    (fn [^js evt]
-                                (reset! view-state (cartoj/view-state->clj (.-viewState evt))))})
+                                (reset! view-state (interop/view-state->clj (.-viewState evt))))})
           [ctrl/navigation-control {:position "top-right"}]]
          [:p "By registering an on-move handler, and subscribing to view-state,
               Clojurescript has full access to the map state and can sync the viewport."]]))))
@@ -768,8 +770,8 @@
         [ctrl/terrain-control {:position     "top-right"
                                :source       "terrain-dem"
                                :exaggeration 1.0}]
-        [sources/source terrain-source
-         [sources/layer hillshade-layer]]]
+        [cartoj/source terrain-source
+         [cartoj/layer hillshade-layer]]]
        [:p "3D terrain rendering with hillshade and sky atmosphere."]])))
 
 (defn drawing-section []
@@ -1041,27 +1043,3 @@
   (init)
   (-> js/document (.getElementById "app") (.-innerHTML))
   (js/alert (str "Hello from the REPL, in namespace " (namespace ::x))))
-
-(defn on-click-example
-  "A Form-2 style component, tracks map click coordinates in a reagant atom."
-  []
-  (let [last-point    (r/atom nil)
-        click-handler (fn [^js e]
-                        (reset! last-point (interop/coords-from-evt e)))]
-    (fn []
-      [:section
-       [:h2 "On click event"]
-       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                                :map-style          "https://tiles.openfreemap.org/styles/positron"
-                                :on-click           click-handler}
-        [ctrl/navigation-control {:position "top-right"}]]
-       [:table {:style {:width "250px"}}
-        [:tbody
-         [:tr
-          [:th "Longitude"]
-          [:td (if-let [lng (:longitude @last-point)]
-                 (.toFixed lng 4) "-")]]
-         [:tr
-          [:th "Latitude"]
-          [:td (if-let [lat (:latitude @last-point)]
-                 (.toFixed lat 4) "-")]]]]])))
