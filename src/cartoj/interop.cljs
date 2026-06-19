@@ -86,12 +86,18 @@
 (defn coords-from-evt
   "Given a Maplibre click event, extract the coordinates.
   Returns {:longitude number :latitude number}."
-  [e]
+  [^js e]
   (let [^js pos (.-lngLat e)]
     {:longitude (.-lng pos) :latitude (.-lat pos)}))
 
 (def ^:private view-state-keys
   [:longitude :latitude :zoom :bearing :pitch :padding])
+
+(defn view-state->js
+  "Convert a CLJS view-state map to a plain JS object.
+  Converts keyword keys to camelCase strings."
+  [vs]
+  (props/props->js vs))
 
 (defn view-state->clj
   "Convert a JS viewState object (from a react-map-gl onMove event) to a
