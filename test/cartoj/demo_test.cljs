@@ -47,3 +47,27 @@
       (let [^js proto (.-prototype result)]
         (is (fn? (.-componentDidMount proto)))
         (is (fn? (.-componentDidUpdate proto)))))))
+
+;; ---------------------------------------------------------------------------
+;; URL hash navigation
+
+(deftest tab->hash-formats-url-fragment
+  (testing "valid tab ids become '#<name>'"
+    (is (= "#barebones" (demo/tab->hash :barebones)))
+    (is (= "#cluster" (demo/tab->hash :cluster)))
+    (is (= "#side-by-side" (demo/tab->hash :side-by-side))))
+  (testing "unknown tab ids return nil"
+    (is (nil? (demo/tab->hash :not-a-real-tab)))))
+
+(deftest hash->tab-parses-url-fragment
+  (testing "leading # is optional"
+    (is (= :cluster (demo/hash->tab "#cluster")))
+    (is (= :cluster (demo/hash->tab "cluster"))))
+  (testing "valid ids map back to their keyword"
+    (is (= :barebones (demo/hash->tab "#barebones")))
+    (is (= :side-by-side (demo/hash->tab "#side-by-side"))))
+  (testing "unknown or empty fragments return nil"
+    (is (nil? (demo/hash->tab "#not-a-real-tab")))
+    (is (nil? (demo/hash->tab "#")))
+    (is (nil? (demo/hash->tab "")))
+    (is (nil? (demo/hash->tab nil)))))
