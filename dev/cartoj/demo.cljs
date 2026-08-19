@@ -972,13 +972,44 @@
                       :section style-by-numeric-section}
    :terrain          {:title   "Terrain"
                       :section terrain-section}))
+
+(defn tab->hash
+  "Return the URL fragment for a tab id, or nil when the id is unknown."
+  [tab-id]
+  (when (contains? tabs tab-id)
+    (str "#" (name tab-id))))
+
+(defn hash->tab
+  "Return the tab id for a URL fragment, or nil when it is not a known tab.
+   A leading # is optional."
+  [hash]
+  (let [s (or hash "")
+        s (if (= \# (first s)) (subs s 1) s)]
+    (when (seq s)
+      (let [kw (keyword s)]
+        (when (contains? tabs kw) kw)))))
+
+(defn select-tab!
+  "Activate a tab and reflect it in the browser URL hash."
+  [tab-id]
+  (when (contains? tabs tab-id)
+    (reset! selected-tab tab-id)
+    (set! (.-hash js/window.location) (tab->hash tab-id))))
+
+(defn sync-tab-from-hash!
+  "Set the active tab from the current URL hash, falling back to the
+   default tab when the hash is absent or unknown."
+  []
+  (reset! selected-tab (or (hash->tab (.-hash js/window.location))
+                           :barebones)))
+
 (defn sidebar []
   (into [:div.demo-sidebar]
         (for [[id {:keys [title]}] tabs]
           [:a
            {:key      (name id)
             :class    (str "nav-item" (when (= @selected-tab id) " active"))
-            :on-click #(reset! selected-tab id)}
+            :on-click #(select-tab! id)}
            title])))
 
 (defn main-panel []
@@ -1029,6 +1060,8 @@
 
 (defn init []
   (rf/dispatch-sync [::cartoj-rf/set-view-state sf-coords])
+  (sync-tab-from-hash!)
+  (.addEventListener js/window "hashchange" (fn [_] (sync-tab-from-hash!)))
   (reset! root (rdom-client/create-root (js/document.getElementById "app")))
   (.render ^js @root (r/as-element [app])))
 
