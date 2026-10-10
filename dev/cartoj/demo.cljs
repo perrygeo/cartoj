@@ -36,9 +36,9 @@
                        (js-delete (.-dataset el) "highlighted")
                        (js/hljs.highlightElement el)))]
     (r/create-class
-     {:display-name                                     "code-block"
-      :component-did-mount                              highlight!
-      :component-did-update                             highlight!
+     {:display-name         "code-block"
+      :component-did-mount  highlight!
+      :component-did-update highlight!
       :reagent-render
       (fn [src]
         [:pre.clojure [:code {:class "language-clojure"
@@ -67,8 +67,6 @@
            "\nNew state:" new-state))
 
 ;; ## App State
-
-(def default-stylesheet "https://tiles.openfreemap.org/styles/positron")
 
 (def sf-coords {:longitude -122.4194 :latitude 37.7749 :zoom 7})
 
@@ -100,11 +98,11 @@
                         {:name "[OpenFreeMap] Bright" :url "https://tiles.openfreemap.org/styles/bright"}
                         {:name "[OpenFreeMap] Positron (Light)" :url "https://tiles.openfreemap.org/styles/positron"}
                         {:name "[OpenFreeMap] Dark Matter" :url "https://tiles.openfreemap.org/styles/dark"}
-                        {:name "[Protomaps] Light" :url "https://pmtiles.perrygeo.com/styles/light.json"}
-                        {:name "[Protomaps] Dark" :url "https://pmtiles.perrygeo.com/styles/dark.json"}
-                        {:name "[Protomaps] Data Viz White" :url "https://pmtiles.perrygeo.com/styles/white.json"}
-                        {:name "[Protomaps] Data Viz Grey" :url "https://pmtiles.perrygeo.com/styles/grey.json"}
-                        {:name "[Protomaps] Data Viz Black" :url "https://pmtiles.perrygeo.com/styles/black.json"}]
+                        {:name "[CARTO] Positron" :url "https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"}
+                        {:name "[CARTO] Dark Matter" :url "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json"}
+                        {:name "[CARTO] Voyager" :url "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json"}
+                        {:name "[VersaTiles] Colorful" :url "https://tiles.versatiles.org/assets/styles/colorful/style.json"}
+                        {:name "[MapLibre] Demo Tiles" :url "https://demotiles.maplibre.org/style.json"}]
         selected-style (r/atom (:url (first basemap-styles)))]
     (fn []
       [:section
@@ -173,7 +171,7 @@
       [:section
        [:h2 "Cluster"]
        [cartoj/interactive-map {:initial-view-state    {:latitude 16 :zoom 1}
-                                :map-style             default-stylesheet
+                                :map-style             "https://tiles.openfreemap.org/styles/positron"
                                 :interactive-layer-ids ["clusters"]
                                 :on-click              on-click}
         [interop/reset-map-ref! map-ref]
@@ -196,7 +194,7 @@
       [:section
        [:h2 "On mouse move event"]
        [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                                :map-style          default-stylesheet
+                                :map-style          "https://tiles.openfreemap.org/styles/positron"
                                 :on-mouse-move      position-handler}
         [ctrl/navigation-control {:position "top-right"}]]
        [:table {:style {:width "250px"}}
@@ -219,7 +217,7 @@
       [:section
        [:h2 "On click event"]
        [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                                :map-style          default-stylesheet
+                                :map-style          "https://tiles.openfreemap.org/styles/positron"
                                 :on-click           click-handler}
         [ctrl/navigation-control {:position "top-right"}]]
        [:table {:style {:width "250px"}}
@@ -238,7 +236,7 @@
   [:section
    [:h2 "Interactive map controls"]
    [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                            :map-style          default-stylesheet}
+                            :map-style          "https://tiles.openfreemap.org/styles/positron"}
     [ctrl/navigation-control {:position "top-right"}]
     [ctrl/fullscreen-control {:position "top-left"}]
     [ctrl/geolocate-control {:position "top-right"}]
@@ -262,7 +260,7 @@
       [:section
        [:h2 "Fly To Location"]
        [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                                :map-style          default-stylesheet}
+                                :map-style          "https://tiles.openfreemap.org/styles/positron"}
         [interop/reset-map-ref! map-ref]
         [ctrl/navigation-control {:position "top-right"}]]
 
@@ -281,7 +279,7 @@
   [:section
    [:h2 "Geocoder"]
    [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                            :map-style          default-stylesheet}
+                            :map-style          "https://tiles.openfreemap.org/styles/positron"}
     [geocoder/geocoder-control {:position  "bottom-left"
                                 :marker    true
                                 :on-result (fn [^js evt]
@@ -302,7 +300,7 @@
          [:h2 "On Map Move (changing viewport)"]
          [cartoj/interactive-map
           (merge state
-                 {:map-style default-stylesheet
+                 {:map-style "https://tiles.openfreemap.org/styles/positron"
                   :on-move   on-move-handler})
           [ctrl/navigation-control {:position "top-right"}]]
          [table-repr state]
@@ -315,7 +313,7 @@
      [:h2 "Reframe-controlled map"]
      [cartoj/interactive-map
       (merge state
-             {:map-style default-stylesheet
+             {:map-style "https://tiles.openfreemap.org/styles/positron"
               :on-move   (cartoj-rf/on-move)})
       [ctrl/navigation-control {:position "top-right"}]]
      [table-repr state]
@@ -327,7 +325,7 @@
     (fn []
       [:section
        [:h2  "Marker + Popup"]
-       [cartoj/interactive-map {:map-style default-stylesheet}
+       [cartoj/interactive-map {:map-style "https://tiles.openfreemap.org/styles/positron"}
         [overlay/marker
          {:longitude (:longitude sf-coords)
           :latitude  (:latitude sf-coords)
@@ -356,7 +354,7 @@
       [:section
        [:h2  "GeoJSON Features"]
        [cartoj/interactive-map {:initial-view-state {:longitude -98 :latitude 38 :zoom 3}
-                                :map-style          default-stylesheet}
+                                :map-style          "https://tiles.openfreemap.org/styles/positron"}
         [cartoj/source {:id   "cities"
                         :type "geojson"
                         :data (clj->js sample-geojson)}
@@ -417,7 +415,7 @@
          [:h2 "Layer Interactivity"]
          [cartoj/interactive-map
           {:initial-view-state    (merge sf-coords {:zoom 12})
-           :map-style             default-stylesheet
+           :map-style             "https://tiles.openfreemap.org/styles/positron"
            :cursor                @cursor
            :interactive-layer-ids interactive-ids
            :on-mouse-move         on-mouse-move
@@ -480,7 +478,7 @@
       [:section
        [:h2 "Layer Switcher"]
        [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 11})
-                                :map-style          default-stylesheet}
+                                :map-style          "https://tiles.openfreemap.org/styles/positron"}
         [interop/reset-map-ref! map-ref]
         [ctrl/navigation-control {:position "top-right"}]]
        [:p "Toggle the visibility of layers built into the OpenFreeMap default stylesheet:"]
@@ -504,7 +502,7 @@
   [:section
    [:h2 "Labeling a GeoJSON HTTP Source"]
    [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                            :map-style          default-stylesheet}
+                            :map-style          "https://tiles.openfreemap.org/styles/positron"}
     [cartoj/source {:id   "cities"
                     :type "geojson"
                     :data "data/ne_110m_populated_places_simple.geojson"}
@@ -547,7 +545,7 @@
       [:section
        [:h2 "GeoJSON, manual HTTP"]
        [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                                :map-style          default-stylesheet}
+                                :map-style          "https://tiles.openfreemap.org/styles/positron"}
         [cartoj/source {:id   "cities"
                         :type "geojson"
                         :data @collection}
@@ -573,7 +571,7 @@
   [:section
    [:h2 "GeoJSON HTTP Source"]
    [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                            :map-style          default-stylesheet}
+                            :map-style          "https://tiles.openfreemap.org/styles/positron"}
     [cartoj/source {:id   "cities"
                     :type "geojson"
                     :data "data/ne_110m_populated_places_simple.geojson"}
@@ -594,7 +592,7 @@
       [:section
        [:h2 "Heatmap"]
        [cartoj/interactive-map {:initial-view-state {:longitude -129.9 :latitude 25 :zoom 0.8}
-                                :map-style          default-stylesheet}
+                                :map-style          "https://tiles.openfreemap.org/styles/positron"}
         [cartoj/source {:id "earthquakes" :type "geojson" :data points}
          [cartoj/layer {:id     "earthquake-heatmap"
                         :type   "heatmap"
@@ -617,7 +615,7 @@
       [:section
        [:h2 "Limit Interactivity"]
        [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 8})
-                                :map-style          default-stylesheet
+                                :map-style          "https://tiles.openfreemap.org/styles/positron"
                                 :max-bounds         sfbay-bounds
                                 :min-zoom           7
                                 :max-zoom           12
@@ -647,7 +645,7 @@
       [:section
        [:h2 "Dynamic Styling"]
        [cartoj/interactive-map {:initial-view-state (merge sf-coords {:zoom 9})
-                                :map-style          default-stylesheet}
+                                :map-style          "https://tiles.openfreemap.org/styles/positron"}
         [interop/reset-map-ref! map-ref]
         [ctrl/navigation-control {:position "top-right"}]]
        [:p "Change map layer styles programmatically:"]
@@ -689,7 +687,7 @@
   [:section
    [:h2 "Style by numeric properties"]
    [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                            :map-style          default-stylesheet}
+                            :map-style          "https://tiles.openfreemap.org/styles/positron"}
     [ctrl/navigation-control {:position "top-right"}]
     [cartoj/source {:id   "cities"
                     :type "geojson"
@@ -722,7 +720,7 @@
          [:h2 "Sync two map viewports."]
          [cartoj/interactive-map
           (merge state
-                 {:map-style  default-stylesheet
+                 {:map-style  "https://tiles.openfreemap.org/styles/positron"
                   :class-name "half-interactive-map"
                   :on-move    (fn [^js evt]
                                 (reset! view-state (interop/view-state->clj (.-viewState evt))))})
@@ -786,7 +784,7 @@
       [:section
        [:h2 "Globe Projection"]
        [cartoj/interactive-map {:initial-view-state {:longitude 0 :latitude 16 :zoom 1.5}
-                                :map-style          default-stylesheet
+                                :map-style          "https://tiles.openfreemap.org/styles/positron"
                                 :projection         @projection}
         [interop/reset-map-ref! map-ref]
         [ctrl/navigation-control {:position "top-right"}]
@@ -821,7 +819,7 @@
       [:section
        [:h2 "Drawing Geometries"]
        [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                                :map-style          default-stylesheet}
+                                :map-style          "https://tiles.openfreemap.org/styles/positron"}
         [draw/draw-control {:position  "top-left"
                             :on-render on-render}]]
        [:div.geometry-panel
@@ -872,7 +870,7 @@
      ;; nested maps + vector here are what props->js will repeatedly
      ;; convert into fresh JS objects/arrays.
      stable-props {:initial-view-state    (merge sf-coords {:zoom 9})
-                   :map-style             default-stylesheet
+                   :map-style             "https://tiles.openfreemap.org/styles/positron"
                    :interactive-layer-ids ["probe-a" "probe-b"]
                    :style                 {:width "100%" :height "100%"}
                    :on-load               handle-load
@@ -1105,7 +1103,7 @@
 (comment
   ;; key conversion behavior
   (js/console.log
-   (clj->js {:beforeId true}) ; #js {:beforeId true} -> Object { beforeId: true } 
+   (clj->js {:beforeId true}) ; #js {:beforeId true} -> Object { beforeId: true }
    (clj->js {:before-id true}) ; {:before-id true} -> Object { "before-id": true }
    (clj->js {"beforeId" true}) ; {"beforeId" true} -> Object { beforeId: true }
    )
