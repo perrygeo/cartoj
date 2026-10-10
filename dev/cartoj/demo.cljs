@@ -774,6 +774,40 @@
          [cartoj/layer hillshade-layer]]]
        [:p "3D terrain rendering with hillshade and sky atmosphere."]])))
 
+(defn globe-section []
+  (let [map-ref    (atom nil)
+        projection (r/atom "globe")
+        toggle     (fn []
+                     (let [next (if (= @projection "globe") "mercator" "globe")]
+                       (reset! projection next)
+                       (when-let [^js m @map-ref]
+                         (.setProjection m (clj->js {:type next})))))]
+    (fn []
+      [:section
+       [:h2 "Globe Projection"]
+       [cartoj/interactive-map {:initial-view-state {:longitude 0 :latitude 16 :zoom 1.5}
+                                :map-style          default-stylesheet
+                                :projection         @projection}
+        [interop/reset-map-ref! map-ref]
+        [ctrl/navigation-control {:position "top-right"}]
+        [cartoj/source {:id   "cities"
+                        :type "geojson"
+                        :data "data/ne_110m_populated_places_simple.geojson"}
+         [cartoj/layer {:id     "cities-circles"
+                        :type   "circle"
+                        :source "cities"
+                        :paint  {:circle-radius       3
+                                 :circle-color        "#e00"
+                                 :circle-stroke-width 1
+                                 :circle-stroke-color "#fff"}}]]]
+       [:div.control-panel
+        [:button {:on-click (fn [_] (toggle))}
+         (str "Switch to " (if (= @projection "globe") "Mercator" "Globe"))]]
+       [:p "Render the map as a 3D globe. The " [:code ":projection"]
+        " prop accepts " [:code "\"globe\""] " or " [:code "\"mercator\""]
+        ". Projection can also be changed imperatively via "
+        [:code ".setProjection"] " on the map instance. Zoom out to see the globe's curvature."]])))
+
 (defn drawing-section []
   (let [geometry  (r/atom nil)
         on-render (fn [_evt ^js draw]
@@ -944,6 +978,8 @@
                       :section flyto-section}
    :geocoder         {:title   "Geocoder"
                       :section geocoder-section}
+   :globe            {:title   "Globe Projection"
+                      :section globe-section}
    :geojson-http     {:title   "GeoJSON HTTP (maplibre)"
                       :section geojson-http-section}
    :geojson-manual   {:title   "GeoJSON HTTP (manual)"
@@ -1038,6 +1074,7 @@
              :dynamic-style    [code-block (code-string dynamic-styling-section)]
              :side-by-side     [code-block (code-string side-by-side-section)]
              :terrain          [code-block (code-string terrain-section)]
+             :globe            [code-block (code-string globe-section)]
              :drawing          [code-block (code-string drawing-section)]
              :labels         [code-block (code-string label-section)]
              :basemaps       [code-block (code-string basemaps-section)]
