@@ -56,7 +56,7 @@ compile:
 	$(SHADOW) release dev
 
 docs:
-	clj -X:codox
+	clojure -X:codox
 	cp -r public/js/main.js docs/js/main.js
 	cp -r public/css/* docs/css/
 	cp -r public/data docs/data
@@ -67,12 +67,12 @@ view-docs: docs
 
 # Install the JAR into ~/.m2 so another local project can consume it via :mvn/version.
 install-jar:
-	clj -T:build install
+	clojure -T:build install
 
 release: clean compile docs
-	clj -T:build jar
+	clojure -T:build jar
 
 # Push the JAR to Clojars. Requires CLOJARS_USERNAME and CLOJARS_PASSWORD
 # (use a deploy token, not your account password).
 publish:
-	clj -T:build deploy
+	clojure -T:build deploy
