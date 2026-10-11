@@ -29,7 +29,11 @@
 planet-latest.osm.gol
 .shadow-cljs/
 node_modules
-dist
 public/js
 coverage
 .c8tmp
+
+# Playwright e2e artifacts
+e2e/test-results
+e2e/playwright-report
+e2e/.cache
