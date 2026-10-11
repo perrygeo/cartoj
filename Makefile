@@ -1,24 +1,47 @@
 _default:
-	@echo "make test|dev|deps|clean|docs|compile|jar|install-local|release"
+	@echo "Available targets:"
+	@echo "  dev            Start shadow-cljs dev watch and REPL"
+	@echo "  clean          Remove build artifacts"
+	@echo "  compile        Release build of the CLJS :dev target"
+	@echo "  deps           Install npm dependencies"
+	@echo "  docs           Generate codox docs and copy assets"
+	@echo "  install-jar    Install the JAR into ~/.m2"
+	@echo "  publish        Deploy the JAR to Clojars"
+	@echo "  release        Clean, compile, docs, and build the JAR"
+	@echo "  starter        Build and serve the starter app, manual test"
+	@echo "  test           Run the unit test suite"
+	@echo "  test-coverage  Run tests with coverage"
+	@echo "  test-e2e       Run end-to-end tests"
+	@echo "  test-advanced  Smoke test, does it build with :advanced compilation"
+	@echo "  view-docs      Build docs and serve them locally"
 
-.PHONY: _default test dev build install clean docs view-docs install-jar release compile publish
+.PHONY: _default test test-e2e dev build install clean docs view-docs install-jar release compile publish
 
 SHADOW := npx shadow-cljs
-
-test:
-	npm run test
-
-test-coverage:
-	npm run test:coverage
-
-test-starter:
-	cd starter && $(SHADOW) release app && cd public && python -m http.server 8006
 
 dev:
 	$(SHADOW) watch dev
 
-release-test:
+test:
+	npm run test
+
+test-lint:
+	clj-kondo --lint src test dev
+	cljfmt check src test dev
+
+test-coverage:
+	npm run test:coverage
+
+test-e2e:
+	npm run test:e2e
+
+test-advanced:
 	$(SHADOW) release test
+
+test-all: test-lint test-advanced test-coverage test-e2e
+
+starter:
+	cd starter && $(SHADOW) release app && cd public && python -m http.server 8006
 
 deps:
 	npm install

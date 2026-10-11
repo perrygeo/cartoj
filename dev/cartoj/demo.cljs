@@ -8,6 +8,7 @@
    [cartoj.interop :as interop]
    [cartoj.overlays :as overlay]
    [cartoj.re-frame :as cartoj-rf]
+   [cartoj.test-hooks :as test-hooks]
    [cljs.pprint :refer [pprint]]
    [re-frame.core :as rf]
    [reagent.core :as r]
@@ -1094,6 +1095,7 @@
 
 (defn init []
   (rf/dispatch-sync [::cartoj-rf/set-view-state sf-coords])
+  (test-hooks/install! selected-tab)
   (sync-tab-from-hash!)
   (.addEventListener js/window "hashchange" (fn [_] (sync-tab-from-hash!)))
   (reset! root (rdom-client/create-root (js/document.getElementById "app")))
