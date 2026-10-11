@@ -1,13 +1,20 @@
+import { existsSync } from 'node:fs';
 import { defineConfig, devices } from '@playwright/test';
 
 /**
  * On this (Nix) host the Playwright-bundled Chromium can't find system
- * libraries, so we use the system Chromium instead. Override with the
- * CARTOJ_CHROMIUM env var if your binary lives elsewhere; leave unset on
- * platforms where the bundled browsers work and delete the executablePath.
+ * libraries, so we use the system Chromium instead. Set CARTOJ_CHROMIUM to
+ * point elsewhere. When unset we use the Nix path if it exists, otherwise we
+ * fall back to Playwright's bundled Chromium (used on CI, where it is
+ * installed with `npx playwright install --with-deps chromium`).
  */
-const CHROMIUM_PATH =
-  process.env.CARTOJ_CHROMIUM ?? '/etc/profiles/per-user/mperry/bin/chromium';
+const NIX_CHROMIUM = '/etc/profiles/per-user/mperry/bin/chromium';
+
+function chromiumPath(): string | undefined {
+  if (process.env.CARTOJ_CHROMIUM) return process.env.CARTOJ_CHROMIUM;
+  if (existsSync(NIX_CHROMIUM)) return NIX_CHROMIUM;
+  return undefined; // Playwright-bundled Chromium
+}
 
 /**
  * Playwright end-to-end tests for the cartoj demo harness.
@@ -48,7 +55,7 @@ export default defineConfig({
       name: 'chromium',
       use: {
         ...devices['Desktop Chrome'],
-        launchOptions: { executablePath: CHROMIUM_PATH },
+        launchOptions: { executablePath: chromiumPath() },
       },
     },
     // Cross-browser projects — enable once baselines are stable and the

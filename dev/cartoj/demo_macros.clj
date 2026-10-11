@@ -5,7 +5,7 @@
   at compile time and emits a [:pre [:code ...]] hiccup vector.
 
   Handles both unqualified symbols (resolved against the calling namespace)
-  and fully-qualified symbols (e.g. cartoj.core/map).
+  and fully-qualified symbols (e.g. cartoj.core/interactive-map).
 
   The source file is located by converting the namespace to a classpath-
   relative path (e.g. cartoj.demo -> cartoj/demo.cljs) and reading it via
@@ -107,7 +107,7 @@
 
   Usage:
     (code-string uncontrolled-section)
-    (code-string cartoj.core/map)
+    (code-string cartoj.core/interactive-map)
 
   Returns a plain string (wrapped in the <code> element) at compile time."
   [sym]

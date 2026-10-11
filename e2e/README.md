@@ -50,15 +50,18 @@ npx playwright test --config e2e/playwright.config.ts smoke.spec.ts
 ### Browser binary
 
 On this Nix host the Playwright-bundled Chromium can't resolve system libraries,
-so the config points at the system Chromium. Override the path if needed:
+so the config points at the system Chromium. The config auto-detects the
+binary: `CARTOJ_CHROMIUM` wins if set, otherwise it uses the Nix Chromium path
+if present, and finally falls back to Playwright's bundled Chromium (as on CI).
+Override the path if needed:
 
 ```bash
 CARTOJ_CHROMIUM=/path/to/chromium npm run test:e2e
 ```
 
-On platforms where the bundled browsers work, install them with
-`npx playwright install chromium` and delete the `executablePath` override in
-`playwright.config.ts`.
+On platforms where the bundled browsers work (e.g. GitHub Actions), install
+them with `npx playwright install --with-deps chromium` and no extra config is
+needed.
 
 ## Cross-browser
 

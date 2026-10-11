@@ -44,60 +44,60 @@
 
 (defn- gen-simple [n]
   (mapv (fn [i]
-          {:width 800
-           :height 600
+          {:width     800
+           :height    600
            :longitude (* 0.01 i)
-           :latitude (* 0.005 i)
-           :zoom (mod i 20)
-           :on-click identity
-           :on-move identity})
+           :latitude  (* 0.005 i)
+           :zoom      (mod i 20)
+           :on-click  identity
+           :on-move   identity})
         (range n)))
 
 (defn- gen-with-style [n]
   (mapv (fn [i]
-          {:longitude (* 0.01 i)
-           :latitude (* 0.005 i)
+          {:longitude          (* 0.01 i)
+           :latitude           (* 0.005 i)
            :initial-view-state {:longitude (* 0.01 i)
-                                :latitude (* 0.005 i)
-                                :zoom (mod i 20)
-                                :pitch 45
-                                :bearing 0}
-           :style {:position "absolute"
-                   :width "100%"
-                   :height "100%"}
-           :map-style "https://demotiles.maplibre.org/style.json"})
+                                :latitude  (* 0.005 i)
+                                :zoom      (mod i 20)
+                                :pitch     45
+                                :bearing   0}
+           :style              {:position "absolute"
+                                :width    "100%"
+                                :height   "100%"}
+           :map-style          "https://demotiles.maplibre.org/style.json"})
         (range n)))
 
 (defn- gen-style-spec [n]
   (mapv (fn [i]
-          {:id (str "layer-" i)
-           :type "circle"
+          {:id     (str "layer-" i)
+           :type   "circle"
            :source "points"
-           :paint {:circle-radius (mod i 20)
-                   :circle-color "red"
-                   :circle-opacity 0.7
-                   :circle-stroke-width 2
-                   :circle-stroke-color "white"
-                   :circle-blur 0.1}
+           :paint  {:circle-radius       (mod i 20)
+                    :circle-color        "red"
+                    :circle-opacity      0.7
+                    :circle-stroke-width 2
+                    :circle-stroke-color "white"
+                    :circle-blur         0.1}
            :layout {:visibility "visible"}
            :filter ["==" "kind" (str "k-" (mod i 10))]})
         (range n)))
 
 (defn- gen-kitchen-sink [n]
   (mapv (fn [i]
-          {:initial-view-state {:longitude (* 0.01 i)
-                                :latitude 0
-                                :zoom 10
-                                :pitch 45
-                                :bearing 0}
-           :style {:width "100%" :height "100%" :position "absolute"}
-           :map-style "https://demotiles.maplibre.org/style.json"
+          {:initial-view-state    {:longitude (* 0.01 i)
+                                   :latitude  0
+                                   :zoom      10
+                                   :pitch     45
+                                   :bearing   0}
+           :style                 {:width "100%" :height "100%" :position "absolute"}
+           :map-style             "https://demotiles.maplibre.org/style.json"
            :interactive-layer-ids ["points" "lines" "polygons"]
-           :reuse-maps true
-           :on-click identity
-           :on-move identity
-           :on-load identity
-           :on-resize identity})
+           :reuse-maps            true
+           :on-click              identity
+           :on-move               identity
+           :on-load               identity
+           :on-resize             identity})
         (range n)))
 
 ;; ---------------------------------------------------------------------------
@@ -116,7 +116,7 @@
                            (let [t0 (now)]
                              (run-once maps)
                              (- (now) t0)))))
-        sorted (vec (sort samples))]
+        sorted  (vec (sort samples))]
     {:min    (first sorted)
      :median (nth sorted (quot n-samples 2))
      :max    (last sorted)
@@ -145,25 +145,25 @@
 ;; worth seeing what it costs uncached.
 
 (defn- bench-kebab []
-  (let [keys [:initial-view-state :on-click :map-style :interactive-layer-ids
-              :reuse-maps :on-move :on-load :on-resize :on-data
-              :circle-radius :circle-color :icon-image :longitude :latitude
-              :zoom :pitch :bearing :max-bounds :fit-bounds-options]
-        n-ops 100000
+  (let [keys      [:initial-view-state :on-click :map-style :interactive-layer-ids
+                   :reuse-maps :on-move :on-load :on-resize :on-data
+                   :circle-radius :circle-color :icon-image :longitude :latitude
+                   :zoom :pitch :bearing :max-bounds :fit-bounds-options]
+        n-ops     100000
         n-samples 7
         ;; warmup
-        _ (dotimes [_ 3] (doseq [k keys] (props/kebab->camel k)))
-        samples (vec (for [_ (range n-samples)]
-                       (let [t0 (now)]
-                         (dotimes [_ (quot n-ops (count keys))]
-                           (doseq [k keys] (props/kebab->camel k)))
-                         (- (now) t0))))
-        sorted (vec (sort samples))]
+        _         (dotimes [_ 3] (doseq [k keys] (props/kebab->camel k)))
+        samples   (vec (for [_ (range n-samples)]
+                         (let [t0 (now)]
+                           (dotimes [_ (quot n-ops (count keys))]
+                             (doseq [k keys] (props/kebab->camel k)))
+                           (- (now) t0))))
+        sorted    (vec (sort samples))]
     (report "kebab->camel (19 distinct keywords, repeated)"
-            {:min (first sorted)
+            {:min    (first sorted)
              :median (nth sorted (quot n-samples 2))
-             :max (last sorted)
-             :n-ops (* (quot n-ops (count keys)) (count keys))})))
+             :max    (last sorted)
+             :n-ops  (* (quot n-ops (count keys)) (count keys))})))
 
 ;; ---------------------------------------------------------------------------
 ;; Entry point
@@ -174,7 +174,7 @@
   (println (str "Node " js/process.version
                 ", V8 " (.-v8 js/process.versions)))
   (println)
-  (let [n-ops 10000
+  (let [n-ops     10000
         n-samples 7]
     (println (str "Each scenario: " n-ops " distinct prop maps converted, "
                   n-samples " samples"))

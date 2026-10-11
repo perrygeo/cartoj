@@ -1,0 +1,7 @@
+{:indent-line-comments? true
+ :sort-ns-references? true
+ :split-keypairs-over-multiple-lines? false
+ :remove-multiple-non-indenting-spaces? false
+ :align-form-columns? true
+ :align-map-columns? true
+ :max-column-alignment-gap 36}

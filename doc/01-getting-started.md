@@ -6,7 +6,7 @@ In a `deps.edn` file install cartoj and the shadow-cljs tooling
 
 ```clojure
 {:paths   ["src"]
- :deps    {io.github.perrygeo/cartoj {:mvn/version "0.1.0"}}
+ :deps    {io.github.perrygeo/cartoj {:mvn/version "0.4.0-alpha1"}}
  :aliases {:shadow-cljs {:extra-deps {thheller/shadow-cljs {:mvn/version "3.4.11"}}}}}
 ```
 
@@ -33,11 +33,10 @@ Defines our required NPM dependencies
 ```json
 {
   "name": "cartoj-example",
-  "version": "0.1.0",
+  "version": "0.4.0-alpha1",
   "private": true,
   "dependencies": {
     "maplibre-gl": "^5.0.0",
-    "pmtiles": "^4.4.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-map-gl": "^8.0.0"
