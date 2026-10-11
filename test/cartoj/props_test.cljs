@@ -2,6 +2,10 @@
   (:require [cartoj.props :as props]
             [cljs.test :refer [deftest is testing]]))
 
+;; Record used to verify the IRecord guard in map->js-camel: records satisfy
+;; map? but must be passed through unchanged rather than recursed into JS.
+(defrecord MarkerStyle [color])
+
 ;; ---------------------------------------------------------------------------
 ;; kebab->camel
 
@@ -133,3 +137,44 @@
             ^js l0     (aget layers 0)
             paint      (.-paint l0)]
         (is (= 0.5 (aget paint "hillshade-exaggeration")))))))
+
+;; ---------------------------------------------------------------------------
+;; Recursive style-spec conversion + record pass-through
+
+(deftest props->js-converts-nested-style-spec-maps
+  (testing "data-driven :paint value (nested map) recursed with kebab keys"
+    (let [^js result (props/props->js {:paint {:circle-radius {:property "zoom"
+                                                               :stops    [[0 5] [10 10]]}}})
+          ^js paint  (.-paint result)
+          ^js cr     (aget paint "circle-radius")]
+      (is (object? cr))
+      (is (= "zoom" (aget cr "property")))
+      (let [^js stops (aget cr "stops")]
+        (is (array? stops))
+        (is (= 2 (.-length stops)))
+        (is (= 0  (aget (aget stops 0) 0)))
+        (is (= 5  (aget (aget stops 0) 1)))
+        (is (= 10 (aget (aget stops 1) 0)))
+        (is (= 10 (aget (aget stops 1) 1)))))))
+
+(deftest props->js-converts-filter-and-layout
+  (testing ":filter vector expression becomes a JS array"
+    (let [^js result (props/props->js {:filter [:all [:== "class" "poi"]]})
+          ^js f      (.-filter result)]
+      (is (array? f))
+      (is (= "all" (aget f 0)))
+      (is (array? (aget f 1)))
+      (is (= "==" (aget (aget f 1) 0)))
+      (is (= "class" (aget (aget f 1) 1)))))
+  (testing ":layout map converted with kebab keys"
+    (let [^js result (props/props->js {:layout {:icon-image "marker" :text-field "{name}"}})
+          ^js layout (.-layout result)]
+      (is (= "marker" (aget layout "icon-image")))
+      (is (= "{name}" (aget layout "text-field"))))))
+
+(deftest props->js-passes-records-through
+  (testing "records under camel-convert keys are passed through, not recursed"
+    (let [rec        (->MarkerStyle "#ff0000")
+          ^js result (props/props->js {:style {:color rec}})
+          ^js style  (.-style result)]
+      (is (identical? rec (.-color style))))))

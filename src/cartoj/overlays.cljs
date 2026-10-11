@@ -32,7 +32,10 @@
     :rotation-alignment — \"map\" | \"viewport\" | \"auto\"
     :pitch-alignment    — \"map\" | \"viewport\" | \"auto\"
     :opacity            — string or number, CSS opacity
-    :popup              — PopupInstance, attach a popup to the marker
+    :popup              — PopupInstance (raw maplibre-gl Popup, e.g.
+                           (new maplibre/Popup ...)); passed through to
+                           Marker.setPopup. Prefer the React popup component
+                           below for reactive (hiccup) content.
     :element            — HTMLElement, custom DOM element
     :style              — map of CSS properties
     :class-name         — string, CSS class
