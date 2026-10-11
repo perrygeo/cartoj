@@ -2,74 +2,21 @@
 
 [![Tests](https://github.com/perrygeo/cartoj/actions/workflows/test.yml/badge.svg)](https://github.com/perrygeo/cartoj/actions/workflows/test.yml)
 [![Clojars](https://img.shields.io/clojars/v/io.github.perrygeo/cartoj.svg)](https://clojars.org/io.github.perrygeo/cartoj)
+ClojureScript library providing interactive maps via [Reagent](https://reagent-project.github.io/) components, built on [react-map-gl](https://visgl.github.io/react-map-gl/) and
+[MapLibre](https://maplibre.org/projects/gl-js/).
 
-ClojureScript library providing [Reagant](https://reagent-project.github.io/) components for interactive maps,
-built on [react-map-gl](https://visgl.github.io/react-map-gl/) and [MapLibre](https://maplibre.org/projects/gl-js/).
+
+```clojure
+{io.github.perrygeo/cartoj {:mvn/version "0.4.0-alpha1"}}
+```
+
 ## Status
 
-**Alpha** — API is not yet stable
+**Beta** - API is almost stable but still actively tested/refined
 
 
 ## Documentation
 
-
-* [https://perrygeo.github.io/cartoj/](https://perrygeo.github.io/cartoj/)
-
-
-## Installation
-
-
-See [https://clojars.org/io.github.perrygeo/cartoj](https://clojars.org/io.github.perrygeo/cartoj) for current version.
-
-Add to `deps.edn`:
-
-```clojure
-{:deps {io.github.perrygeo/cartoj {:mvn/version "..."}}}
-```
-
-Or to `shadow-cljs.edn`:
-
-```clojure
-:dependencies [[io.github.perrygeo/cartoj "..."]]
-```
-
-
-## Usage
-
-
-```clojure
-(ns example
-  (:require [cartoj.controls :as ctrl]
-            [cartoj.core :as cartoj]
-            [cartoj.interop :as interop]
-            [reagent.core :as r]))
-
-(defn on-click-example
-  "A Form-2 style component, tracks map click coordinates in a reagant atom."
-  []
-  (let [last-point    (r/atom nil)
-        click-handler (fn [^js e]
-                        (reset! last-point (interop/coords-from-evt e)))]
-    (fn []
-      [:section
-       [:h2 "On click event"]
-       [cartoj/interactive-map {:initial-view-state {:latitude 16 :zoom 1}
-                                :map-style          "https://tiles.openfreemap.org/styles/positron"
-                                :on-click           click-handler}
-        [ctrl/navigation-control {:position "top-right"}]]
-       [:table {:style {:width "250px"}}
-        [:tbody
-         [:tr
-          [:th "Longitude"]
-          [:td (if-let [lng (:longitude @last-point)]
-                 (.toFixed lng 4) "-")]]
-         [:tr
-          [:th "Latitude"]
-          [:td (if-let [lat (:latitude @last-point)]
-                 (.toFixed lat 4) "-")]]]]])))
-```
-
-<img src="on-click-example.jpg">
-
-
-See the [live demo](https://perrygeo.github.io/cartoj/03-examples.html) for more examples.
+* [API Docs](https://perrygeo.github.io/cartoj/)
+* [Getting Started](./doc/01-getting-started.md)
+* [Examples](https://perrygeo.github.io/cartoj/03-examples.html)

@@ -11,8 +11,8 @@
   - Nested CLJS maps on MapLibre style spec props (:paint, :layout, :filter)
     are converted recursively with kebab-case keys (e.g. :circle-radius → \"circle-radius\").
   - All other values are passed through as-is (numbers, strings, booleans)"
-  (:require [clojure.string :as str]
-            [clojure.set]))
+  (:require [clojure.set]
+            [clojure.string :as str]))
 
 (defn- inner-kebab->camel
   "Convert a kebab-case keyword (or camelCase string) to a camelCase string.
@@ -25,7 +25,7 @@
   [k]
   (if (string? k)
     k
-    (let [s (name k)
+    (let [s     (name k)
           parts (str/split s #"-")]
       (str (first parts)
            (str/join (map str/capitalize (rest parts)))))))

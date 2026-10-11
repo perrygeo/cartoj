@@ -37,7 +37,7 @@ There are four primary source types:
 
 ## Styles
 
-> A MapLibre style is a document that defines the visual appearance of a map: what data to draw, the order to draw it in, and how to style the data when drawing it. 
+> A MapLibre style is a document that defines the visual appearance of a map: what data to draw, the order to draw it in, and how to style the data when drawing it.
 
 From the [Mapblibre Style Spec](https://maplibre.org/maplibre-style-spec/)
 
@@ -46,3 +46,8 @@ From the [Mapblibre Style Spec](https://maplibre.org/maplibre-style-spec/)
 *Layers* are the main abstraction for building interactive maps. They combine a data source with a style.
 
 One source can be associated with many styles thus many layers. The source layer and the visual layer are decoupled. It's common to have one source with two layers; one for the geometry itself, another for its label.
+
+## Components
+
+Cartoj interactive maps are typically created using [Reagant Form-2 style](https://github.com/reagent-project/reagent/blob/master/doc/CreatingReagentComponents.md#form-2--a-function-returning-a-function)
+components.

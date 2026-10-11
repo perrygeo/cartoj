@@ -17,8 +17,8 @@
 
   All other props are passed to the MaplibreGeocoder constructor
   (kebab-case keys converted to camelCase)."
-  (:require ["react" :as react]
-            ["@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.mjs" :as geocoder-module]
+  (:require ["@maplibre/maplibre-gl-geocoder/dist/maplibre-gl-geocoder.mjs" :as geocoder-module]
+            ["react" :as react]
             [cartoj.interop :as interop]
             [cartoj.overlays :as overlays]
             [cartoj.props :as props]))
@@ -43,16 +43,16 @@
                               result   (array)]
                           (doseq [^js f features]
                             (let [^js bbox (.-bbox f)
-                                  center  #js [(+ (aget bbox 0) (/ (- (aget bbox 2) (aget bbox 0)) 2))
-                                               (+ (aget bbox 1) (/ (- (aget bbox 3) (aget bbox 1)) 2))]
-                                  point   #js {:type       "Feature"
-                                               :geometry   #js {:type        "Point"
-                                                                :coordinates center}
-                                               :place_name (.. f -properties -display_name)
-                                               :properties (.-properties f)
-                                               :text       (.. f -properties -display_name)
-                                               :place_type #js ["place"]
-                                               :center     center}]
+                                  center   #js [(+ (aget bbox 0) (/ (- (aget bbox 2) (aget bbox 0)) 2))
+                                                (+ (aget bbox 1) (/ (- (aget bbox 3) (aget bbox 1)) 2))]
+                                  point    #js {:type       "Feature"
+                                                :geometry   #js {:type        "Point"
+                                                                 :coordinates center}
+                                                :place_name (.. f -properties -display_name)
+                                                :properties (.-properties f)
+                                                :text       (.. f -properties -display_name)
+                                                :place_type #js ["place"]
+                                                :center     center}]
                               (.push result point)))
                           #js {:features result})))
                (.catch (fn [^js e]
@@ -109,41 +109,41 @@
   Plus any MaplibreGeocoder options (kebab-case converted to camelCase)."
   [& args]
   (let [[prop-map _] (props/props-and-children args)
-        prop-map     (or prop-map {})
+        prop-map (or prop-map {})
         {:keys [marker position on-loading on-results on-result on-error]
          :or   {marker true}} prop-map
-        js-props     (props/props->js (dissoc prop-map
-                                              :marker :position
-                                              :on-loading :on-results :on-result :on-error))]
+        js-props (props/props->js (dissoc prop-map
+                                          :marker :position
+                                          :on-loading :on-results :on-result :on-error))]
     [:f>
      (fn []
        (let [[marker-pos set-marker!] (react/useState nil)
-             geocoder (interop/use-control
-                       (fn [^js ctx]
-                         (let [^js map-lib (.-mapLib ctx)]
-                           (aset js-props "marker" false)
-                           (aset js-props "maplibregl" map-lib)
-                           (let [^js ctrl (MaplibreGeocoder. geocoder-api js-props)]
-                             (.on ctrl "loading" (or on-loading #()))
-                             (.on ctrl "results" (or on-results #()))
-                             (.on ctrl "result"
-                                  (fn [^js evt]
-                                    (when on-result (on-result evt))
-                                    (let [^js result   (.-result evt)
-                                          location    (when result
-                                                        (or (.-center result)
-                                                            (when (and (.. result -geometry -type)
-                                                                       (= (.. result -geometry -type) "Point"))
-                                                              (.. result -geometry -coordinates))))]
-                                      (if (and location marker)
-                                        (let [m-props (if (map? marker) marker {})]
-                                          (set-marker! #js {:lx (aget location 0)
-                                                            :ly (aget location 1)
-                                                            :mp m-props}))
-                                        (set-marker! nil)))))
-                             (.on ctrl "error" (or on-error #()))
-                             ctrl)))
-                       #js {:position position})]
+             geocoder                 (interop/use-control
+                                       (fn [^js ctx]
+                                         (let [^js map-lib (.-mapLib ctx)]
+                                           (aset js-props "marker" false)
+                                           (aset js-props "maplibregl" map-lib)
+                                           (let [^js ctrl (MaplibreGeocoder. geocoder-api js-props)]
+                                             (.on ctrl "loading" (or on-loading #()))
+                                             (.on ctrl "results" (or on-results #()))
+                                             (.on ctrl "result"
+                                                  (fn [^js evt]
+                                                    (when on-result (on-result evt))
+                                                    (let [^js result (.-result evt)
+                                                          location   (when result
+                                                                       (or (.-center result)
+                                                                           (when (and (.. result -geometry -type)
+                                                                                      (= (.. result -geometry -type) "Point"))
+                                                                             (.. result -geometry -coordinates))))]
+                                                      (if (and location marker)
+                                                        (let [m-props (if (map? marker) marker {})]
+                                                          (set-marker! #js {:lx (aget location 0)
+                                                                            :ly (aget location 1)
+                                                                            :mp m-props}))
+                                                        (set-marker! nil)))))
+                                             (.on ctrl "error" (or on-error #()))
+                                             ctrl)))
+                                       #js {:position position})]
          (update-geocoder-props geocoder prop-map)
          (when ^js marker-pos
            [overlays/marker

@@ -19,6 +19,6 @@
   ;; macro that runs at compile-time, you can't use runtime values. Use a 
   ;; literal quoted symbol or a compile-time macro.
   {:namespace (symbol (namespace ::x))
-   :publics (keys (ns-publics (symbol (namespace ::x))))}
+   :publics   (keys (ns-publics (symbol (namespace ::x))))}
   ;; wip
   )

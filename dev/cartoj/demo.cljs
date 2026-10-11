@@ -84,7 +84,7 @@
 ;;  to keep the relevant state contained in one component source.
 ;;  The outer function runs once on mount, returning a closure.
 ;;  The inner function is called by Reagent on each re-render,
-;;  so the reagant atom holding state persists across renders.
+;;  so the Reagent atom holding state persists across renders.
 ;; This is good for examples but real apps may want to hold state in other ways.
 
 (defn barebones-section []

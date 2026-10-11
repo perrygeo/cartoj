@@ -1,9 +1,10 @@
 {
   "name": "cartoj",
-  "version": "0.1.0",
+  "version": "0.4.0-alpha1",
   "description": "ClojureScript / Reagent wrapper around react-map-gl (MapLibre)",
   "private": true,
   "scripts": {
+    "check-version": "node scripts/check-version.js",
     "dev": "shadow-cljs watch dev",
     "test": "shadow-cljs compile test && node target/test/test.js",
     "test:coverage": "shadow-cljs compile test && node scripts/fix-source-maps.js && c8 node target/test/test.js",

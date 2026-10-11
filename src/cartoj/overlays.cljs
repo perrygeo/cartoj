@@ -46,7 +46,7 @@
   Children replace the default pin icon."
   [& args]
   (let [[prop-map children] (props/props-and-children args)
-        js-props (props/props->js (or prop-map {}))]
+        js-props            (props/props->js (or prop-map {}))]
     (into [:r> Marker js-props] children)))
 
 ;; ---------------------------------------------------------------------------
@@ -79,5 +79,5 @@
   Children are rendered inside the popup."
   [& args]
   (let [[prop-map children] (props/props-and-children args)
-        js-props (props/props->js (or prop-map {}))]
+        js-props            (props/props->js (or prop-map {}))]
     (into [:r> Popup js-props] children)))

@@ -37,17 +37,19 @@
               (get db db-key)))
 
 (defn on-move
-  "Returns an onMove callback suitable for passing as :on-move to cartoj.core/map.
+  "Returns an onMove callback suitable for passing as :on-move to
+  cartoj.core/interactive-map.
 
   Options (optional map):
     :sync? – when true, uses rf/dispatch-sync (default: false, uses rf/dispatch)
 
   When called with a react-map-gl move event, it extracts the viewState
-  JS object, converts it to a CLJS map via core/view-state->clj, and
-  dispatches [::set-view-state view-state-map].
+  JS object, converts it to a CLJS map via cartoj.interop/view-state->clj,
+  and dispatches [::set-view-state view-state-map].
 
   Example:
-    [core/map {:on-move (cartoj-rf/on-move) :map-style \"...\"}]"
+    [carto/interactive-map {:on-move (cartoj-rf/on-move) :map-style \"...\"}]"
+
   ([] (on-move nil))
   ([{:keys [sync?] :or {sync? false}}]
    (fn [^js evt]

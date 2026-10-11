@@ -7,13 +7,14 @@
     clj -T:build install   ; install to local ~/.m2 for testing
     clj -T:build deploy    ; push to Clojars (needs CLOJARS_USERNAME / CLOJARS_PASSWORD)
 
-  Bump `version` below for each release. Tag the commit `v<version>` to keep
+  Bump the `VERSION` file for each release. Tag the commit `v<version>` to keep
   the pom.xml :tag in sync."
   (:require [clojure.tools.build.api :as b]
-            [deps-deploy.deps-deploy :as dd]))
+            [deps-deploy.deps-deploy :as dd]
+            [clojure.string :as str]))
 
 (def lib       'io.github.perrygeo/cartoj)
-(def version   "0.4.0-alpha1")
+(def version   (str/trim (slurp "VERSION")))
 (def class-dir "target/classes")
 (def jar-file  (format "target/%s-%s.jar" (name lib) version))
 (def basis     (delay (b/create-basis {:project "deps.edn"})))

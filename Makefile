@@ -15,7 +15,7 @@ _default:
 	@echo "  test-advanced  Smoke test, does it build with :advanced compilation"
 	@echo "  view-docs      Build docs and serve them locally"
 
-.PHONY: _default test test-e2e dev build install clean docs view-docs install-jar release compile publish
+.PHONY: _default test test-e2e dev build install clean docs view-docs install-jar release compile publish check-version
 
 SHADOW := npx shadow-cljs
 
@@ -24,6 +24,9 @@ dev:
 
 test:
 	npm run test
+
+check-version:
+	node scripts/check-version.js
 
 test-lint:
 	clj-kondo --lint src test dev
@@ -38,7 +41,7 @@ test-e2e:
 test-advanced:
 	$(SHADOW) release test
 
-test-all: test-lint test-advanced test-coverage test-e2e
+test-all: check-version test-lint test-advanced test-coverage test-e2e
 
 starter:
 	cd starter && $(SHADOW) release app && cd public && python -m http.server 8006
