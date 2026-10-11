@@ -6,10 +6,13 @@
   - Incoming: CLJS map with kebab-case keyword keys (or string keys for pass-through)
   - Outgoing: JS object with camelCase string keys
   - Callback values (fns) are passed through unchanged
-  - Nested CLJS maps on JS/CSS props (:initial-view-state, :style, :padding,
-    :bounds, :fit-bounds-options) are converted recursively with camelCase keys.
-  - Nested CLJS maps on MapLibre style spec props (:paint, :layout, :filter)
-    are converted recursively with kebab-case keys (e.g. :circle-radius → \"circle-radius\").
+  - Nested CLJS maps on JS/CSS/option props (:initial-view-state, :style,
+    :padding, :bounds, :fit-bounds-options, :offset, :position-options, ...)
+    are converted recursively with camelCase keys.
+  - Nested CLJS maps on MapLibre style spec props (:paint, :layout, :filter,
+    :terrain, :sky, :light, :projection, :cluster-properties, :data,
+    :promote-id) are converted recursively with kebab-case keys
+    (e.g. :circle-radius → \"circle-radius\").
   - All other values are passed through as-is (numbers, strings, booleans)"
   (:require [clojure.set]
             [clojure.string :as str]))
@@ -48,7 +51,26 @@
     :max-bounds
     :padding
     :fit-bounds-options
-    :interactive-layer-ids})
+    :interactive-layer-ids
+    ;; Map/control options that accept object or array values.
+    :attribution-control
+    :box-zoom
+    :canvas-context-attributes
+    :custom-attribution
+    :drag-pan
+    :locale
+    :max-canvas-size
+    :offset
+    :position-options
+    :scroll-zoom
+    :touch-pitch
+    :touch-zoom-rotate
+    ;; Source props that accept array values.
+    :coordinates
+    :tiles
+    :urls
+    ;; Already camelCase; kebab->camel leaves it unchanged.
+    :RTLTextPlugin})
 
 ;; Keys whose nested map values use kebab-case keys (MapLibre style spec).
 
@@ -58,7 +80,12 @@
     :filter
     :terrain
     :sky
-    :light})
+    :light
+    :projection
+    ;; Source props whose nested maps contain user-defined/style-spec keys.
+    :cluster-properties
+    :data
+    :promote-id})
 
 (def ^:private deep-convert-keys
   (clojure.set/union camel-convert-keys maplibre-spec-keys))
@@ -82,8 +109,8 @@
   "Recursively convert a CLJS map to a JS object with camelCase keys.
   Used for JS/CSS nested props (:style, :initial-view-state, etc.).
   When a nested map's key is in maplibre-spec-keys (:paint, :layout,
-  :filter, :terrain, :sky, :light), delegates to map->js-kebab instead
-  so style-spec properties keep their kebab-case names."
+  :filter, :terrain, :sky, :light, :projection), delegates to map->js-kebab
+  instead so style-spec properties keep their kebab-case names."
   [m]
   (let [obj (js-obj)]
     (doseq [[k v] m]
