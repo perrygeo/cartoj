@@ -172,6 +172,79 @@
       (is (= "marker" (aget layout "icon-image")))
       (is (= "{name}" (aget layout "text-field"))))))
 
+(deftest props->js-converts-additional-option-maps
+  (testing ":offset map becomes a JS {x y} object"
+    (let [^js result (props/props->js {:offset {:x 10 :y 20}})
+          ^js offset (.-offset result)]
+      (is (= 10 (.-x offset)))
+      (is (= 20 (.-y offset)))))
+  (testing ":offset vector becomes a JS array"
+    (let [^js result (props/props->js {:offset [10 20]})
+          ^js offset (.-offset result)]
+      (is (array? offset))
+      (is (= 10 (aget offset 0)))
+      (is (= 20 (aget offset 1)))))
+  (testing ":position-options nested map becomes camelCase JS"
+    (let [^js result (props/props->js {:position-options {:enable-high-accuracy true
+                                                          :timeout              6000}})
+          ^js po     (.-positionOptions result)]
+      (is (true? (.-enableHighAccuracy po)))
+      (is (= 6000 (.-timeout po)))))
+  (testing ":custom-attribution string vector becomes a JS array"
+    (let [^js result (props/props->js {:custom-attribution ["OSM" "OpenStreetMap"]})
+          ^js ca     (.-customAttribution result)]
+      (is (array? ca))
+      (is (= "OSM" (aget ca 0)))
+      (is (= "OpenStreetMap" (aget ca 1)))))
+  (testing ":max-canvas-size vector becomes a JS array"
+    (let [^js result (props/props->js {:max-canvas-size [4096 4096]})
+          ^js mcs    (.-maxCanvasSize result)]
+      (is (array? mcs))
+      (is (= 4096 (aget mcs 0)))))
+  (testing ":projection map keeps style-spec kebab-case keys"
+    (let [^js result (props/props->js {:projection {:type "globe"}})
+          ^js proj   (.-projection result)]
+      (is (= "globe" (aget proj "type")))))
+  (testing ":scroll-zoom option map becomes camelCase JS"
+    (let [^js result (props/props->js {:scroll-zoom {:around "center"}})
+          ^js sz     (.-scrollZoom result)]
+      (is (= "center" (.-around sz)))))
+  (testing ":RTLTextPlugin option map converts nested keys to camelCase"
+    (let [^js result (props/props->js {:RTLTextPlugin {:plugin-url "https://example.com/rtl.js"
+                                                       :lazy       true}})
+          ^js plugin (.-RTLTextPlugin result)]
+      (is (= "https://example.com/rtl.js" (.-pluginUrl plugin)))
+      (is (true? (.-lazy plugin))))))
+
+(deftest props->js-converts-source-option-maps
+  (testing ":tiles string vector becomes a JS array"
+    (let [^js result (props/props->js {:tiles ["https://a/{z}/{x}/{y}.pbf"
+                                               "https://b/{z}/{x}/{y}.pbf"]})
+          ^js tiles  (.-tiles result)]
+      (is (array? tiles))
+      (is (= "https://a/{z}/{x}/{y}.pbf" (aget tiles 0)))))
+  (testing ":coordinates vector-of-vectors becomes a nested JS array"
+    (let [^js result (props/props->js {:coordinates [[0 0] [10 0] [10 10] [0 10]]})
+          ^js coords (.-coordinates result)]
+      (is (array? coords))
+      (is (array? (aget coords 0)))
+      (is (= 10 (aget (aget coords 1) 0)))))
+  (testing ":data GeoJSON map is converted with preserved keys"
+    (let [^js result (props/props->js {:data {:type "FeatureCollection" :features []}})
+          ^js data   (.-data result)]
+      (is (= "FeatureCollection" (.-type data)))
+      (is (array? (.-features data)))))
+  (testing ":promote-id map preserves source-layer keys"
+    (let [^js result (props/props->js {:promote-id {:building "id"}})
+          ^js pid    (.-promoteId result)]
+      (is (= "id" (aget pid "building")))))
+  (testing ":cluster-properties map preserves user-defined keys"
+    (let [^js result (props/props->js {:cluster-properties {:sum ["+" ["get" "value"] 1]}})
+          ^js cp     (.-clusterProperties result)
+          ^js sum    (aget cp "sum")]
+      (is (array? sum))
+      (is (= "+" (aget sum 0))))))
+
 (deftest props->js-passes-records-through
   (testing "records under camel-convert keys are passed through, not recursed"
     (let [rec        (->MarkerStyle "#ff0000")
