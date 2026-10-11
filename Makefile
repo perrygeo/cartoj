@@ -29,7 +29,7 @@ check-version:
 	node scripts/check-version.js
 
 test-lint:
-	clj-kondo --lint src test dev
+	clj-kondo --repro --cache false --lint src test dev
 	cljfmt check src test dev
 
 test-coverage:
