@@ -15,7 +15,9 @@
                                              FullscreenControl
                                              ScaleControl
                                              AttributionControl
-                                             TerrainControl]]
+                                             TerrainControl
+                                             GlobeControl
+                                             LogoControl]]
             [cartoj.props :as props]))
 
 (defn- make-control
@@ -64,3 +66,15 @@
   Key props: :position, :source, :exaggeration."
   [& args]
   (make-control TerrainControl args))
+
+(defn globe-control
+  "Globe projection toggle control.
+  Key props: :position."
+  [& args]
+  (make-control GlobeControl args))
+
+(defn logo-control
+  "MapLibre logo control.
+  Key props: :position, :compact."
+  [& args]
+  (make-control LogoControl args))
