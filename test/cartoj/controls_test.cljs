@@ -1,8 +1,8 @@
 (ns cartoj.controls-test
   "Tests for cartoj.controls (NavigationControl, GeolocateControl,
   FullscreenControl, ScaleControl, AttributionControl)."
-  (:require [cljs.test :refer [deftest is testing]]
-            [cartoj.controls :as controls]))
+  (:require [cartoj.controls :as controls]
+            [cljs.test :refer [deftest is testing]]))
 
 ;; Helper: all controls share the same structural contract.
 (defn- assert-control [result]
@@ -34,8 +34,8 @@
 
 (deftest geolocate-control-converts-props
   (testing ":position and :track-user-location converted"
-    (let [[_ _comp ^js js-props] (controls/geolocate-control {:position "bottom-right"
-                                                               :track-user-location true})]
+    (let [[_ _comp ^js js-props] (controls/geolocate-control {:position            "bottom-right"
+                                                              :track-user-location true})]
       (is (= "bottom-right" (.-position js-props)))
       (is (= true           (.-trackUserLocation js-props))))))
 
@@ -85,8 +85,8 @@
 
 (deftest attribution-control-converts-props
   (testing ":compact and :custom-attribution converted to JS"
-    (let [[_ _comp ^js js-props] (controls/attribution-control {:compact true
-                                                                 :custom-attribution "© Me"})]
+    (let [[_ _comp ^js js-props] (controls/attribution-control {:compact            true
+                                                                :custom-attribution "© Me"})]
       (is (= true  (.-compact js-props)))
       (is (= "© Me" (.-customAttribution js-props))))))
 
@@ -104,7 +104,7 @@
 (deftest terrain-control-converts-props
   (testing ":position and :source converted to JS"
     (let [[_ _comp ^js js-props] (controls/terrain-control {:position "top-left"
-                                                             :source "my-dem"})]
+                                                            :source   "my-dem"})]
       (is (= "top-left" (.-position js-props)))
       (is (= "my-dem" (.-source js-props))))))
 

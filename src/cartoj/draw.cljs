@@ -83,58 +83,58 @@
 (def ^:private white "#fff")
 
 (def default-styles
-  [{"id" "gl-draw-polygon-fill"
-    "type" "fill"
+  [{"id"     "gl-draw-polygon-fill"
+    "type"   "fill"
     "filter" ["all" ["==" "$type" "Polygon"]]
-    "paint" {"fill-color" ["case" ["==" ["get" "active"] "true"] orange blue]
-             "fill-opacity" 0.1}}
-   {"id" "gl-draw-lines"
-    "type" "line"
+    "paint"  {"fill-color"   ["case" ["==" ["get" "active"] "true"] orange blue]
+              "fill-opacity" 0.1}}
+   {"id"     "gl-draw-lines"
+    "type"   "line"
     "filter" ["any" ["==" "$type" "LineString"] ["==" "$type" "Polygon"]]
     "layout" {"line-cap" "round" "line-join" "round"}
-    "paint" {"line-color" ["case" ["==" ["get" "active"] "true"] orange blue]
-             "line-dasharray" ["case"
-                               ["==" ["get" "active"] "true"] ["literal" [0.2 2]]
-                               ["literal" [2 0]]]
-             "line-width" 2}}
-   {"id" "gl-draw-point-outer"
-    "type" "circle"
+    "paint"  {"line-color"     ["case" ["==" ["get" "active"] "true"] orange blue]
+              "line-dasharray" ["case"
+                                ["==" ["get" "active"] "true"] ["literal" [0.2 2]]
+                                ["literal" [2 0]]]
+              "line-width"     2}}
+   {"id"     "gl-draw-point-outer"
+    "type"   "circle"
     "filter" ["all" ["==" "$type" "Point"] ["==" "meta" "feature"]]
-    "paint" {"circle-radius" ["case" ["==" ["get" "active"] "true"] 7 5]
-             "circle-color" white}}
-   {"id" "gl-draw-point-inner"
-    "type" "circle"
+    "paint"  {"circle-radius" ["case" ["==" ["get" "active"] "true"] 7 5]
+              "circle-color"  white}}
+   {"id"     "gl-draw-point-inner"
+    "type"   "circle"
     "filter" ["all" ["==" "$type" "Point"] ["==" "meta" "feature"]]
-    "paint" {"circle-radius" ["case" ["==" ["get" "active"] "true"] 5 3]
-             "circle-color" ["case" ["==" ["get" "active"] "true"] orange blue]}}
-   {"id" "gl-draw-vertex-outer"
-    "type" "circle"
+    "paint"  {"circle-radius" ["case" ["==" ["get" "active"] "true"] 5 3]
+              "circle-color"  ["case" ["==" ["get" "active"] "true"] orange blue]}}
+   {"id"     "gl-draw-vertex-outer"
+    "type"   "circle"
     "filter" ["all"
               ["==" "$type" "Point"]
               ["==" "meta" "vertex"]
               ["!=" "mode" "simple_select"]]
-    "paint" {"circle-radius" ["case" ["==" ["get" "active"] "true"] 7 5]
-             "circle-color" white}}
-   {"id" "gl-draw-vertex-inner"
-    "type" "circle"
+    "paint"  {"circle-radius" ["case" ["==" ["get" "active"] "true"] 7 5]
+              "circle-color"  white}}
+   {"id"     "gl-draw-vertex-inner"
+    "type"   "circle"
     "filter" ["all"
               ["==" "$type" "Point"]
               ["==" "meta" "vertex"]
               ["!=" "mode" "simple_select"]]
-    "paint" {"circle-radius" ["case" ["==" ["get" "active"] "true"] 5 3]
-             "circle-color" orange}}
-   {"id" "gl-draw-midpoint"
-    "type" "circle"
+    "paint"  {"circle-radius" ["case" ["==" ["get" "active"] "true"] 5 3]
+              "circle-color"  orange}}
+   {"id"     "gl-draw-midpoint"
+    "type"   "circle"
     "filter" ["all" ["==" "meta" "midpoint"]]
-    "paint" {"circle-radius" 3
-             "circle-color" orange}}])
+    "paint"  {"circle-radius" 3
+              "circle-color"  orange}}])
 
 ;; ---------------------------------------------------------------------------
 ;; Props are communicated from the Reagent wrapper to the stable functional
 ;; component via a module-level atom.  This avoids creating a new React
 ;; component type on every render (which would cause useControl to remount).
 
-(defonce ^:private draw-config (atom nil))
+(defonce draw-config (atom nil))
 
 (defn- draw-component
   "Module-level React functional component with stable identity.
@@ -187,17 +187,17 @@
   Returns nil (the control renders nothing to the DOM)."
   [& args]
   (let [[prop-map _] (props/props-and-children args)
-        prop-map     (or prop-map {})
+        prop-map (or prop-map {})
         {:keys [position on-create on-update on-delete on-render]
          :or   {on-create (fn [])
                 on-update (fn [])
                 on-delete (fn [])
-                on-render (fn [])}} prop-map
-        rest-props   (dissoc prop-map :position :on-create :on-update :on-delete :on-render)
-        styles       (get rest-props :styles default-styles)
-        controls     (merge {:combine-features false :uncombine-features false}
-                            (:controls rest-props))
-        draw-props   (props/props->js (dissoc rest-props :styles :controls))]
+                on-render (fn [])}}                               prop-map
+        rest-props (dissoc prop-map :position :on-create :on-update :on-delete :on-render)
+        styles (get rest-props :styles default-styles)
+        controls (merge {:combine-features false :uncombine-features false}
+                        (:controls rest-props))
+        draw-props (props/props->js (dissoc rest-props :styles :controls))]
     (aset draw-props "styles" (clj->js styles))
     (aset draw-props "controls"
           (let [obj (js-obj)]

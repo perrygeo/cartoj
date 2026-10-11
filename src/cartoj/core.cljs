@@ -66,9 +66,7 @@
         class-name          (or (:class-name prop-map) "cartoj-interactive-map")
         js-props            (props/props->js (dissoc prop-map :class-name))
         map-el              (into [:r> Map js-props] children)]
-    (if class-name
-      [:div {:class class-name} map-el]
-      map-el)))
+    [:div {:class class-name} map-el]))
 
 (defn source
   "Reagent component wrapping react-map-gl Source.

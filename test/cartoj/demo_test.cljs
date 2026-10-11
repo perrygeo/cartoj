@@ -5,8 +5,8 @@
   hljs.highlightElement into :component-did-mount and :component-did-update.
   We test `code-block-render` (the pure render function) and the Form-3
   shape without requiring a DOM."
-  (:require [cljs.test :refer [deftest is testing]]
-            [cartoj.demo :as demo]))
+  (:require [cartoj.demo :as demo]
+            [cljs.test :refer [deftest is testing]]))
 
 ;; ---------------------------------------------------------------------------
 ;; code-block-render (pure render fn, testable without a DOM)
@@ -24,7 +24,7 @@
 
 (deftest code-block-render-preserves-source-text
   (testing "multi-line source text is kept verbatim"
-    (let [src "(defn foo [x]\n  (* x x))"
+    (let [src                        "(defn foo [x]\n  (* x x))"
           [[_ {:keys [class]} text]] (rest (demo/code-block-render src))]
       (is (= "language-clojure" class))
       (is (= src text)))))

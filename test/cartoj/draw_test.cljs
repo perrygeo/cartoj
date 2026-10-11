@@ -1,7 +1,7 @@
 (ns cartoj.draw-test
   "Tests for cartoj.draw — verifies hiccup shape and prop handling."
-  (:require [cljs.test :refer [deftest is testing]]
-            [cartoj.draw :as draw]))
+  (:require [cartoj.draw :as draw]
+            [cljs.test :refer [deftest is testing]]))
 
 (deftest default-styles-is-maplibre-compatible
   (testing "default-styles ships a corrected mapbox-gl-draw theme whose case
@@ -46,7 +46,7 @@
     (let [on-create (fn [^js _e] nil)
           on-update (fn [^js _e] nil)
           on-delete (fn [^js _e] nil)
-          result    (draw/draw-control {:position "top-right"
+          result    (draw/draw-control {:position  "top-right"
                                         :on-create on-create
                                         :on-update on-update
                                         :on-delete on-delete})]
@@ -59,7 +59,7 @@
             config (so draw-component can subscribe to draw.render) and NOT
             forwarded to MapboxDraw as a constructor option"
     (let [on-render (fn [^js _e ^js _d] nil)
-          _         (draw/draw-control {:position "top-left"
+          _         (draw/draw-control {:position  "top-left"
                                         :on-render on-render})
           cfg       @cartoj.draw/draw-config]
       (is (identical? on-render (:on-render cfg))
@@ -71,10 +71,10 @@
 
 (deftest draw-control-passes-through-draw-options
   (testing "extra props like :display-controls-default pass through"
-    (let [result (draw/draw-control {:position "top-left"
-                                      :display-controls-default false
-                                      :controls {:polygon true
-                                                 :trash true}})]
+    (let [result (draw/draw-control {:position                 "top-left"
+                                     :display-controls-default false
+                                     :controls                 {:polygon true
+                                                                :trash   true}})]
       (is (vector? result))
       (is (= :f> (first result)))
       (is (fn? (second result))))))
@@ -82,7 +82,7 @@
 (deftest draw-control-defaults-combine-disabled
   (testing "combine_features and uncombine_features default to false"
     (draw/draw-control {:position "top-left"})
-    (let [cfg @draw/draw-config
+    (let [cfg      @draw/draw-config
           controls (aget (:draw-props cfg) "controls")]
       (is (some? controls) "controls should always be present")
       (is (false? (aget controls "combine_features"))
@@ -94,7 +94,7 @@
   (testing "user can explicitly enable combine_features"
     (draw/draw-control {:position "top-left"
                         :controls {:combine-features true}})
-    (let [cfg @draw/draw-config
+    (let [cfg      @draw/draw-config
           controls (aget (:draw-props cfg) "controls")]
       (is (true? (aget controls "combine_features"))
           "explicit :combine-features true must override default false")
