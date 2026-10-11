@@ -1,6 +1,6 @@
 ;; Pulls deps from deps.edn, with the :shadow-cljs alias adding shadow-cljs
 ;; itself to the Clojure classpath. Everything else this build needs (cartoj
-;; and its transitive cljs/reagent/re-frame) comes from deps.edn's :deps.
+;; and its transitive cljs/reagent) comes from deps.edn's :deps.
 {:deps     {:aliases [:shadow-cljs]}
  :dev-http {8080 "public"}
  :builds   {:app {:target     :browser

@@ -31,8 +31,9 @@ covering the viewport.
 
 ## What's in here
 
-- `deps.edn` — single dep: `io.github.perrygeo/cartoj`. ClojureScript,
-  Reagent, and re-frame come in transitively from cartoj's pom.
+- `deps.edn` — single dep: `io.github.perrygeo/cartoj`. ClojureScript and
+  Reagent come in transitively from cartoj's pom. (re-frame is not a cartoj
+  dependency — add it yourself if you use re-frame.)
 - `shadow-cljs.edn` — browser build, `:deps {:aliases [:shadow-cljs]}` so
   dependencies are read from `deps.edn`.
 - `package.json` — the minimum npm peers for any cartoj map: `react`,

@@ -7,7 +7,6 @@
    [cartoj.geocoder :as geocoder]
    [cartoj.interop :as interop]
    [cartoj.overlays :as overlay]
-   [cartoj.re-frame :as cartoj-rf]
    [cartoj.test-hooks :as test-hooks]
    [cljs.pprint :refer [pprint]]
    [re-frame.core :as rf]
@@ -309,16 +308,49 @@
          [:p "By registering an on-move handler, and subscribing to view-state,
               Clojurescript has full access to the map state."]]))))
 
+;; ---------------------------------------------------------------------------
+;; Re-frame integration example
+;; TODO this would be better served as a separate example/starter template
+
+(rf/reg-event-db
+ ::set-view-state
+ (fn [db [_ view-state]]
+   (assoc db ::view-state view-state)))
+
+(rf/reg-sub
+ ::view-state
+ (fn [db _]
+   (get db ::view-state)))
+
+(def reframe-setup
+  ;; hack
+  "(rf/reg-event-db
+ ::set-view-state
+ (fn [db [_ view-state]]
+   (assoc db ::view-state view-state)))
+
+(rf/reg-sub
+ ::view-state
+ (fn [db _]
+   (get db ::view-state)))
+")
+
 (defn reframe-section []
-  (let [state (or @(rf/subscribe [::cartoj-rf/view-state]) sf-coords)]
+  (let [state           (or @(rf/subscribe [::view-state]) sf-coords)
+        reframe-on-move (fn [^js evt]
+                          (rf/dispatch
+                           [::set-view-state (interop/view-state->clj (.-viewState evt))]))]
     [:section
      [:h2 "Reframe-controlled map"]
      [cartoj/interactive-map
       (merge state
              {:map-style "https://tiles.openfreemap.org/styles/positron"
-              :on-move   (cartoj-rf/on-move)})
+              :on-move   reframe-on-move})
       [ctrl/navigation-control {:position "top-right"}]]
      [table-repr state]
+     [:p "cartoj does not ship re-frame helpers (as of 0.4.0). But the pattern can be adopted in < ten lines."]
+     [:pre {:class "clojure"}
+      [:code {:class "language-clojure hljs"} reframe-setup]]
      [:p "By registering an on-move handler, and subscribing to view-state,
           Clojurescript has full access to the map state."]]))
 
@@ -1096,7 +1128,7 @@
   (.render ^js @root (r/as-element [app])))
 
 (defn init []
-  (rf/dispatch-sync [::cartoj-rf/set-view-state sf-coords])
+  (rf/dispatch-sync [::set-view-state sf-coords])
   (test-hooks/install! selected-tab)
   (sync-tab-from-hash!)
   (.addEventListener js/window "hashchange" (fn [_] (sync-tab-from-hash!)))
