@@ -1,6 +1,6 @@
 {
   "name": "cartoj",
-  "version": "0.4.0-alpha1",
+  "version": "0.4.0",
   "description": "ClojureScript / Reagent wrapper around react-map-gl (MapLibre)",
   "private": true,
   "scripts": {

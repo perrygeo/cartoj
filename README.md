@@ -9,7 +9,7 @@
 **Cartoj** is a ClojureScript library for building interactive maps. The goal is to provide idiomatic [Reagent](https://reagent-project.github.io/) components which call into [react-map-gl](https://visgl.github.io/react-map-gl/) and the [MapLibre GL JS](https://maplibre.org/projects/gl-js/) engine.
 
 ```clojure
-{io.github.perrygeo/cartoj {:mvn/version "0.4.0-alpha1"}}
+{io.github.perrygeo/cartoj {:mvn/version "0.4.0"}}
 ```
 
 <img src="./example.jpg">
