@@ -6,6 +6,8 @@
     - `map-provider` — multi-map context (wraps MapProvider)
     - `use-map`     — raw useMap hook reference (call inside :f> components only)
     - `use-control` — raw useControl hook reference (call inside :f> components only)
+    - `coords->center` — cartoj coords map -> JS [lng lat] array
+    - `coords->lnglat` — cartoj coords map -> JS {lng, lat} object
 
   IMPORTANT: `use-map` and `use-control` are React hooks.  They MUST be called
   inside a React functional component.  In Reagent, use them inside a component
@@ -85,10 +87,38 @@
 
 (defn coords-from-evt
   "Given a Maplibre click event, extract the coordinates.
-  Returns {:longitude number :latitude number}."
+  Returns {:longitude number :latitude number}.
+
+  To use the result with the maplibre imperative API, convert it with
+  `coords->center` (JS [lng lat] array) or `coords->lnglat` (JS {lng, lat})."
   [^js e]
   (let [^js pos (.-lngLat e)]
     {:longitude (.-lng pos) :latitude (.-lat pos)}))
+
+(defn coords->lnglat
+  "Convert a cartoj coordinate map to a JS LngLatLike object.
+
+  Accepts either key style:
+    {:longitude lng :latitude lat}   ; cartoj/react-map-gl
+    {:lng lng :lat lat}              ; maplibre
+
+  Returns a JS object with `lng` and `lat` properties, suitable for
+  maplibre APIs accepting LngLatLike (e.g. map.setCenter)"
+  [{:keys [longitude latitude lng lat]}]
+  #js {:lng (or longitude lng)
+       :lat (or latitude lat)})
+
+(defn coords->center
+  "Convert a cartoj coordinate map to a JS [lng lat] array.
+
+  Accepts either key style:
+    {:longitude lng :latitude lat}   ; cartoj/react-map-gl
+    {:lng lng :lat lat}              ; maplibre
+
+  Returns a JS array [lng lat], valid both as a maplibre LngLatLike and
+  as a GeoJSON position."
+  [{:keys [longitude latitude lng lat]}]
+  #js [(or longitude lng) (or latitude lat)])
 
 (def ^:private view-state-keys
   [:longitude :latitude :zoom :bearing :pitch :padding])

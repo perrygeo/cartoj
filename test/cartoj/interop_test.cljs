@@ -50,6 +50,51 @@
   (testing "use-control is exported as a function"
     (is (fn? interop/use-control))))
 
+;; ---------------------------------------------------------------------------
+;; coords->center / coords->lnglat
+
+(deftest coords->center-returns-lng-lat-array
+  (testing "canonical :longitude/:latitude map converts to [lng lat]"
+    (let [result (interop/coords->center {:longitude -122.4 :latitude 37.8})]
+      (is (= -122.4 (aget result 0)))
+      (is (= 37.8   (aget result 1)))))
+
+  (testing "maplibre-style :lng/:lat map converts to [lng lat]"
+    (let [result (interop/coords->center {:lng -122.4 :lat 37.8})]
+      (is (= -122.4 (aget result 0)))
+      (is (= 37.8   (aget result 1)))))
+
+  (testing "zero coordinates are preserved"
+    (let [result (interop/coords->center {:longitude 0 :latitude 0})]
+      (is (= 0 (aget result 0)))
+      (is (= 0 (aget result 1)))))
+
+  (testing "canonical keys take precedence when both styles are present"
+    (let [result (interop/coords->center {:longitude 1 :latitude 2 :lng 9 :lat 8})]
+      (is (= 1 (aget result 0)))
+      (is (= 2 (aget result 1))))))
+
+(deftest coords->lnglat-returns-lng-lat-object
+  (testing "canonical :longitude/:latitude map converts to {lng lat}"
+    (let [result (interop/coords->lnglat {:longitude -122.4 :latitude 37.8})]
+      (is (= -122.4 (.-lng result)))
+      (is (= 37.8   (.-lat result)))))
+
+  (testing "maplibre-style :lng/:lat map converts to {lng lat}"
+    (let [result (interop/coords->lnglat {:lng -122.4 :lat 37.8})]
+      (is (= -122.4 (.-lng result)))
+      (is (= 37.8   (.-lat result)))))
+
+  (testing "zero coordinates are preserved"
+    (let [result (interop/coords->lnglat {:longitude 0 :latitude 0})]
+      (is (= 0 (.-lng result)))
+      (is (= 0 (.-lat result)))))
+
+  (testing "canonical keys take precedence when both styles are present"
+    (let [result (interop/coords->lnglat {:longitude 1 :latitude 2 :lng 9 :lat 8})]
+      (is (= 1 (.-lng result)))
+      (is (= 2 (.-lat result))))))
+
 (deftest view-state-round-trip
   (testing "view-state->js converts a CLJS view-state map to JS"
     (let [vs    {:longitude -122.4 :latitude 37.8 :zoom 14 :bearing 0 :pitch 0}
