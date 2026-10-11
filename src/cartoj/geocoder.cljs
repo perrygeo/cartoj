@@ -27,14 +27,44 @@
 
 ;; ---------------------------------------------------------------------------
 ;; Nominatim forward geocoding API
+;;
+;; The response-transformation logic is kept in small pure functions below so
+;; it can be unit-tested without touching the network. `forwardGeocode` only
+;; wires them together around `js/fetch`.
+
+(defn- nominatim-url
+  "Build the Nominatim forward-geocoding URL for a query string."
+  [query]
+  (str "https://nominatim.openstreetmap.org/search?q="
+       (js/encodeURIComponent query)
+       "&format=geojson&polygon_geojson=1&addressdetails=1"))
+
+(defn- bbox->center
+  "Compute the [lng lat] center of a bbox [min-lng min-lat max-lng max-lat]."
+  [[min-lng min-lat max-lng max-lat]]
+  [(+ min-lng (/ (- max-lng min-lng) 2))
+   (+ min-lat (/ (- max-lat min-lat) 2))])
+
+(defn- feature->point
+  "Convert a Nominatim GeoJSON feature into a geocoder result feature:
+  a Point geometry at the bbox center, with :place_name/:text taken from
+  properties.display_name and the original properties object attached."
+  [^js feature]
+  (let [display-name (.. feature -properties -display_name)
+        [lng lat]    (bbox->center (js->clj (.-bbox feature)))]
+    #js {:type       "Feature"
+         :geometry   #js {:type        "Point"
+                          :coordinates #js [lng lat]}
+         :place_name display-name
+         :properties (.-properties feature)
+         :text       display-name
+         :place_type #js ["place"]
+         :center     #js [lng lat]}))
 
 (def ^:private geocoder-api
   #js {:forwardGeocode
        (fn [^js config]
-         (let [query (.-query config)
-               url   (str "https://nominatim.openstreetmap.org/search?q="
-                          (js/encodeURIComponent query)
-                          "&format=geojson&polygon_geojson=1&addressdetails=1")]
+         (let [url (nominatim-url (.-query config))]
            (-> (js/fetch url)
                (.then (fn [^js resp]
                         (.json resp)))
@@ -42,18 +72,7 @@
                         (let [features (.-features geojson)
                               result   (array)]
                           (doseq [^js f features]
-                            (let [^js bbox (.-bbox f)
-                                  center   #js [(+ (aget bbox 0) (/ (- (aget bbox 2) (aget bbox 0)) 2))
-                                                (+ (aget bbox 1) (/ (- (aget bbox 3) (aget bbox 1)) 2))]
-                                  point    #js {:type       "Feature"
-                                                :geometry   #js {:type        "Point"
-                                                                 :coordinates center}
-                                                :place_name (.. f -properties -display_name)
-                                                :properties (.-properties f)
-                                                :text       (.. f -properties -display_name)
-                                                :place_type #js ["place"]
-                                                :center     center}]
-                              (.push result point)))
+                            (.push result (feature->point f)))
                           #js {:features result})))
                (.catch (fn [^js e]
                          (js/console.error "Failed to forwardGeocode with error:" e)
