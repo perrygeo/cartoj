@@ -37,11 +37,11 @@ covering the viewport.
 - `shadow-cljs.edn` — browser build, `:deps true` so dependencies are read
   from `deps.edn`.
 - `package.json` — the minimum npm peers for any cartoj map: `react`,
-  `react-dom`, `react-map-gl`, `maplibre-gl`, `pmtiles`. (`pmtiles` is
-  required even for a basic map because `cartoj.core` registers the
-  `pmtiles://` protocol at load time. The geocoder and draw npm packages
-  listed in cartoj's `deps.cljs` are only needed by namespaces this example
-  doesn't touch.)
+  `react-dom`, `react-map-gl`, `maplibre-gl`. The `pmtiles`, geocoder, and
+  draw npm packages are only needed by the optional `cartoj.pmtiles`,
+  `cartoj.geocoder`, and `cartoj.draw` namespaces, which this example
+  doesn't touch. Add `pmtiles` to your deps only if you require
+  `cartoj.pmtiles` to register the `pmtiles://` protocol.
 - `public/index.html` — loads `maplibre-gl.css` from unpkg and sizes the
   cartoj wrapper to fill the viewport.
 - `src/example/core.cljs` — six lines: requires `cartoj.core`, mounts a

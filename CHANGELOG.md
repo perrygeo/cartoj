@@ -1,5 +1,7 @@
 # Changelog
 
+## 0.4.0-alpha1
+* `pmtiles` is now *actually* optional; a basic map needs only `react`, `react-dom`, `react-map-gl`, and `maplibre-gl`. You must explicitly require `cartoj.pmtiles` to register the `pmtiles://` protocol.
 ## 0.3.0
 
 * `sources` and `layers` are now in the `cartoj.core` namespace

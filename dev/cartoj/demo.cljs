@@ -7,7 +7,6 @@
    [cartoj.geocoder :as geocoder]
    [cartoj.interop :as interop]
    [cartoj.overlays :as overlay]
-   [cartoj.pmtiles]
    [cartoj.re-frame :as cartoj-rf]
    [cljs.pprint :refer [pprint]]
    [re-frame.core :as rf]
