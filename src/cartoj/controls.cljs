@@ -11,18 +11,18 @@
     [controls/scale-control      {:max-width 100 :unit \"metric\"}]
     [controls/attribution-control {:compact true}]"
   (:require ["react-map-gl/maplibre" :refer [NavigationControl
-                                              GeolocateControl
-                                              FullscreenControl
-                                              ScaleControl
-                                              AttributionControl
-                                              TerrainControl]]
+                                             GeolocateControl
+                                             FullscreenControl
+                                             ScaleControl
+                                             AttributionControl
+                                             TerrainControl]]
             [cartoj.props :as props]))
 
 (defn- make-control
   "Generic factory: converts CLJS props to JS and returns [:r> Component props]."
   [Component args]
   (let [[prop-map children] (props/props-and-children args)
-        js-props (props/props->js (or prop-map {}))]
+        js-props            (props/props->js (or prop-map {}))]
     (into [:r> Component js-props] children)))
 
 ;; ---------------------------------------------------------------------------

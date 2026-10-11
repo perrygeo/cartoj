@@ -19,7 +19,7 @@
 
     ;; In your component:
     (let [vs @(rf/subscribe [::cartoj-rf/view-state])]
-      [carto/map (merge vs
+      [carto/interactive-map (merge vs
                         {:on-move  (cartoj-rf/on-move)
                          :map-style \"https://demotiles.maplibre.org/style.json\"})])"
   (:require [cartoj.interop :as interop]

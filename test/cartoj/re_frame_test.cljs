@@ -4,9 +4,9 @@
   These test the event handler and subscription logic in isolation
   (no DOM/React involved). We use re-frame's dispatch-sync for synchronous
   testing without needing the re-frame-test library."
-  (:require [cljs.test :refer [deftest is testing use-fixtures]]
-            [re-frame.core :as rf]
-            [cartoj.re-frame :as cartoj-rf]))
+  (:require [cartoj.re-frame :as cartoj-rf]
+            [cljs.test :refer [deftest is testing use-fixtures]]
+            [re-frame.core :as rf]))
 
 ;; ---------------------------------------------------------------------------
 ;; Fixtures — clear subscription cache and reset db key between tests
@@ -52,7 +52,7 @@
 
 (deftest on-move-handler-dispatches-view-state
   (testing "calling the on-move handler with a fake JS event updates the view-state"
-    (let [handler (cartoj-rf/on-move {:sync? true})
+    (let [handler    (cartoj-rf/on-move {:sync? true})
           fake-event (js-obj "viewState"
                              (js-obj "longitude" -73.9
                                      "latitude"  40.7
