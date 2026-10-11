@@ -65,7 +65,13 @@ export default defineConfig({
   ],
   webServer: {
     command: 'npx shadow-cljs watch dev',
-    url: 'http://localhost:3000/index.html',
+    // Wait for the compiled bundle, not index.html: shadow-cljs starts serving
+    // the static :dev-http directory immediately, before the first watch build
+    // finishes writing public/js/main.js. If a test navigates during that
+    // window, main.js 404s and the app never mounts (the page won't reload on
+    // its own once the build lands). A 404 counts as "not ready" for
+    // Playwright, so this holds test startup until the initial compile completes.
+    url: 'http://localhost:3000/js/main.js',
     reuseExistingServer: true,
     timeout: 120_000,
     cwd: '..',
