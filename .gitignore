@@ -25,6 +25,7 @@
 /checkouts
 /classes
 /target
+/docs
 /dev/infra/pgdata
 planet-latest.osm.gol
 .shadow-cljs/
