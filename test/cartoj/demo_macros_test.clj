@@ -14,7 +14,7 @@
   (testing "converts namespace symbol to classpath-relative .cljs path"
     (is (= "cartoj/demo.cljs"     (dm/ns->resource-path 'cartoj.demo)))
     (is (= "cartoj/core.cljs"     (dm/ns->resource-path 'cartoj.core)))
-    (is (= "cartoj/re_frame.cljs" (dm/ns->resource-path 'cartoj.re-frame))))
+    (is (= "cartoj/test_hooks.cljs" (dm/ns->resource-path 'cartoj.test-hooks))))
 
   (testing "the path is resolvable on the classpath"
     (is (some? (io/resource (dm/ns->resource-path 'cartoj.demo))))
@@ -49,12 +49,12 @@
         ;; body lines must have leading spaces
         (is (re-find #"(?m)^  \[" src))))
 
-    (testing "works for ClojureScript that contains ::alias/kw (controlled-section)"
-      (let [src (dm/defn-source-text demo-res "controlled-section")]
+    (testing "works for ClojureScript that contains ::alias/kw (reframe-section)"
+      (let [src (dm/defn-source-text demo-res "reframe-section")]
         (is (string? src))
-        (is (str/starts-with? src "(defn controlled-section"))
+        (is (str/starts-with? src "(defn reframe-section"))
         ;; must contain the ns-aliased keyword unchanged
-        (is (str/includes? src "::cartoj-rf/view-state"))))
+        (is (str/includes? src "::view-state"))))
 
     (testing "works for vars in a different namespace (cartoj.core)"
       (let [src (dm/defn-source-text core-res "map")]

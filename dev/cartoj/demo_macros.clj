@@ -20,7 +20,7 @@
 
 (defn ns->resource-path
   "Converts a namespace symbol to a classpath-relative .cljs file path.
-  e.g. cartoj.re-frame => \"cartoj/re_frame.cljs\""
+  e.g. cartoj.test-hooks => \"cartoj/test_hooks.cljs\""
   [ns-sym]
   (-> (str ns-sym)
       (str/replace "." "/")

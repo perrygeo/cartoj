@@ -27,7 +27,7 @@
     :id                   — string, unique map instance id
     :map-style            — string URL or MapLibre style spec (required)
     :initial-view-state   — {:longitude :latitude :zoom :bearing :pitch :padding}
-    :view-state           — controlled view state (use with re-frame :sync?)
+    :view-state           — controlled view state (pair with :on-move)
     :style                — map of CSS properties for the container
     :projection           — \"mercator\" | \"globe\" | projection spec
     :style-diffing        — boolean, enable diffing on style change (default true)
