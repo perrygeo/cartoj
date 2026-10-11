@@ -240,8 +240,10 @@
     [ctrl/navigation-control {:position "top-right"}]
     [ctrl/fullscreen-control {:position "top-left"}]
     [ctrl/geolocate-control {:position "top-right"}]
-    [ctrl/scale-control {:position "bottom-left" :max-width 120 :unit "metric"}]]
-   [:p "Map controls"]])
+    [ctrl/scale-control {:position "bottom-left" :max-width 120 :unit "metric"}]
+    [ctrl/globe-control {:position "top-right"}]
+    [ctrl/logo-control {:position "top-left"}]]
+   [:p "All available map controls on one interactive map."]])
 
 (defn flyto-section []
   (let [map-ref        (atom nil)

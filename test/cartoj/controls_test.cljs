@@ -111,3 +111,37 @@
 (deftest terrain-control-accepts-no-props
   (testing "no-arg call does not crash"
     (is (vector? (controls/terrain-control)))))
+
+;; ---------------------------------------------------------------------------
+;; GlobeControl
+
+(deftest globe-control-returns-reagent-vector
+  (testing "returns [:> ...]"
+    (assert-control (controls/globe-control {}))))
+
+(deftest globe-control-converts-position
+  (testing ":position passes through as JS prop"
+    (let [[_ _comp ^js js-props] (controls/globe-control {:position "top-right"})]
+      (is (= "top-right" (.-position js-props))))))
+
+(deftest globe-control-accepts-no-props
+  (testing "no-arg call does not crash"
+    (is (vector? (controls/globe-control)))))
+
+;; ---------------------------------------------------------------------------
+;; LogoControl
+
+(deftest logo-control-returns-reagent-vector
+  (testing "returns [:> ...]"
+    (assert-control (controls/logo-control {}))))
+
+(deftest logo-control-converts-props
+  (testing ":position and :compact converted to JS"
+    (let [[_ _comp ^js js-props] (controls/logo-control {:position "bottom-right"
+                                                         :compact  true})]
+      (is (= "bottom-right" (.-position js-props)))
+      (is (= true (.-compact js-props))))))
+
+(deftest logo-control-accepts-no-props
+  (testing "no-arg call does not crash"
+    (is (vector? (controls/logo-control)))))
